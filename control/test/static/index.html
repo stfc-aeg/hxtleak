@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>ODIN Control</title>
+
+    <!-- Bootstrap -->
+    <link href="js/bootstrap-5.1.1-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/aegir.css" rel="stylesheet">
+
+  </head>
+  <body>
+      <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">ODIN</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#about">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#contact">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="container">
+        <div class="aegir">
+          <h1>AEGIR</h1>
+          <p class="lead">Welcome to the AEGIR adapter demo!</p>
+          <p>API version is:&nbsp;<span id="api-version">&nbsp;</span></p>
+          <p>Registered API adapters:&nbsp;<span id="api-adapters">&nbsp;</span></p>
+          <p>Background task count:&nbsp;<span id="task-count">&nbsp;</span></p>
+          <p>Enable background task:&nbsp;<input type="checkbox" id="task-enable" onclick="change_enable()"/></p>
+        </div>
+      </div><!-- /.container -->
+
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap-5.1.1-dist/js/bootstrap.min.js"></script>
+    <script src="js/odin_control.js"></script>
+    <script src="js/aegir.js"></script>
+  </body>
+</html>
