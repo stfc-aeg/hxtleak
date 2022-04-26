@@ -1,5 +1,4 @@
 let aegir_endpoint;
-let task_enable_elem;
 
 /**
  * This function is called when the DOM content of the page is loaded, and initialises
@@ -11,8 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initialise the adapter endpoint
     aegir_endpoint = new AdapterEndpoint("aegir");
-
-    task_enable_elem = document.querySelector('#task-enable');
 
     update_api_version();
     update_api_info();
@@ -46,25 +43,13 @@ function update_background_task()
 {
     aegir_endpoint.get('')
     .then(result => {
-        var ioloop_task_count = result.background_task.ioloop_count;
-        var thread_task_count = result.background_task.thread_count;
-        var task_enabled = result.background_task.enable;
+        var task_arduino_status = result.arduino_status;
+        var task_time_received = result.time_received;
 
-        document.querySelector("#task-count").innerHTML = 
-            `ioloop: ${ioloop_task_count} thread: ${thread_task_count}`;
-        task_enable_elem.checked = task_enabled;
-    })
-    .catch(error => {
-        console.log(error.message);
-    });
-}
-
-function change_enable() {
-    var enabled = task_enable_elem.checked;
-    console.log("Background task enable changed to " + (enabled ? "true" : "false"));
-    aegir_endpoint.put({'enable': enabled}, 'background_task')
-    .then(result => {
-        // console.log(result);
+        document.querySelector("#arduino-stat").innerHTML = 
+            `${task_arduino_status}`;
+        document.querySelector("#time-receive").innerHTML =
+            `${task_time_received}`;
     })
     .catch(error => {
         console.log(error.message);
