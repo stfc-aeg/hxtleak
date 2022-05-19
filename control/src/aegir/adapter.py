@@ -1,7 +1,9 @@
 """Main adapter portion of the Aegir Adapter.
 
-This class initialises the adapter, sets the port name,
-and handles HTTP GET requests to the adapter.
+This class initialises the adapter which sets the port name and creates
+the controller object, and handles HTTP GET requests to the adapter.
+
+James Foster
 """
 import logging
 
@@ -12,12 +14,12 @@ from aegir.controller import AegirController
 
 
 class AegirAdapter(ApiAdapter):
-    """Initialise the adapter class for the Aegir Adapter."""
+    """Main adapter class for the Aegir Adapter."""
 
     def __init__(self, **kwargs):
         """Initialise the adapter object.
 
-        :param kwargs: keyawrd argument list that is passed to superclass
+        :param kwargs: keyword argument list that is passed to superclass
                        init method to populate options dictionary
         """
         # Initalise super class

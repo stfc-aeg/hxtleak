@@ -49,7 +49,7 @@ class TestAegirController():
 
     def test_serial_read(self, serial_fixture):
         serial_fixture.ser_write(serial_fixture.packet)
-        while serial_fixture.controller.arduino_status == 'unknown':
+        while serial_fixture.controller.status == 'unknown':
             pass
         serial_fixture.controller.background_task_enable = False
         output = serial_fixture.controller.decoder
@@ -66,17 +66,16 @@ class TestAegirController():
 
     def test_no_serial_port(self):
         controller = AegirController('/dev/doesntexist')
-        assert controller.arduino_status == "No serial port"
+        assert controller.status == "No serial port"
         
     def test_param_tree_get(self, serial_fixture):
         dt_vals = serial_fixture.controller.get('')
         assert dt_vals, serial_fixture.controller.param_tree
 
     def test_param_tree_get_single_value(self, serial_fixture):
-        version_info = get_versions()
-        output = version_info['version']
-        dt_odin_ver = serial_fixture.controller.get('odin_version')
-        assert dt_odin_ver['odin_version'] == output
+        expected_output = "unknown"
+        dt_odin_ver = serial_fixture.controller.get('status')
+        assert dt_odin_ver['status'] == expected_output
 
     def test_param_tree_missing_value(self, serial_fixture):
         with pytest.raises(ParameterTreeError) as excinfo:
@@ -86,22 +85,22 @@ class TestAegirController():
         
     def test_checksum_bad(self, serial_fixture):
         serial_fixture.ser_write(serial_fixture.bad_checksum)
-        while serial_fixture.controller.arduino_status == 'unknown':
+        while serial_fixture.controller.status == 'unknown':
             pass
         serial_fixture.controller.background_task_enable = False
-        output = serial_fixture.controller.arduino_status
+        output = serial_fixture.controller.status
         assert output == "Checksum invalid"
 
     def test_good_packet_counter(self, serial_fixture):
         serial_fixture.ser_write(serial_fixture.packet)
-        while serial_fixture.controller.arduino_status == 'unknown':
+        while serial_fixture.controller.status == 'unknown':
             pass
         serial_fixture.controller.background_task_enable = False
         assert serial_fixture.controller.good_packet_counter == 1
 
     def test_bad_packet_counter(self, serial_fixture):
         serial_fixture.ser_write(serial_fixture.bad_checksum)
-        while serial_fixture.controller.arduino_status == 'unknown':
+        while serial_fixture.controller.status == 'unknown':
             pass
         serial_fixture.controller.background_task_enable = False
         assert serial_fixture.controller.bad_packet_counter == 1

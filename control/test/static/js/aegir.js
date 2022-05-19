@@ -43,7 +43,7 @@ function update_background_task()
 {
     aegir_endpoint.get('')
     .then(result => {
-        var task_arduino_status = result.arduino_status;
+        var task_status = result.status;
 
         var task_packet_t1 = result.packet_info.t1;
         var task_packet_t2 = result.packet_info.t2;
@@ -56,8 +56,8 @@ function update_background_task()
 
         var task_time_received = result.time_received;
 
-        document.querySelector("#arduino-stat").innerHTML = 
-            `${task_arduino_status}`;
+        document.querySelector("#status").innerHTML = 
+            `${task_status}`;
 
         document.querySelector("#packet-t1").innerHTML = 
             `${task_packet_t1}`;

@@ -39,10 +39,10 @@ def dummy_aegir_adapter():
 
 class TestAegirAdapter():
     def test_adapter_get(self, dummy_aegir_adapter):
-        expected_response = {'odin_version': '1.1.0'}
+        expected_response = {'status': 'unknown'}
         mock_request = Mock()
         mock_request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
-        response = dummy_aegir_adapter.get('odin_version', mock_request)
+        response = dummy_aegir_adapter.get('status', mock_request)
         assert response.data == expected_response
         assert response.status_code == 200
     
