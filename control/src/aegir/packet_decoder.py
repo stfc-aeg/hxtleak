@@ -1,13 +1,16 @@
 """Packet Decoder portion of the Aegir Adapter.
 
-This handles the unpacking and validation of received packets.
+This handles the unpacking and validation of received packets,
+as well as the formatting of the decoded output.
+
+James Foster
 """
 import struct
 import logging
 
 
 class AegirPacketDecoder(struct.Struct):
-    """Decoder class for incoming struct packets from the Arduino."""
+    """Decoder class for received data packets."""
 
     EOP_VAL = 0xa5
     EOP_BYTES = bytearray([EOP_VAL]*2)
@@ -33,15 +36,23 @@ class AegirPacketDecoder(struct.Struct):
 
         Check if the packet is the appropriate size and has the correct
         End of Packet identification bytes.
+
+        :param buffer: buffer for received raw data packet input
         """
         return len(buffer) > 2 and buffer[-2:] == self.EOP_BYTES
 
     def unpack(self, buffer):
-        """Unpack the data from the buffer into the initialised values."""
+        """Unpack the data from the buffer into the initialised values.
+
+        :param buffer: buffer for received raw data packet input
+        """
         (self.t1, self.t2, self.fault, self.checksum, self.eop) = super().unpack(buffer)
 
     def checkSumCheck(self, buffer):
-        """Verify the checksum value of the packet using an XOR checksum."""
+        """Verify the checksum value of the packet using an XOR checksum.
+
+        :param buffer: buffer for received raw data packet input
+        """
         checkSumCheck = 0
         csum_and_eop_size = 3
         packet_size = (len(buffer) - csum_and_eop_size)
