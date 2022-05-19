@@ -5,6 +5,8 @@ from aegir.packet_decoder import AegirPacketDecoder
 from datetime import datetime
 import struct
 import os, serial
+import threading
+import time
 
 from odin.adapters.dummy import DummyAdapter
 from odin.adapters.parameter_tree import ParameterAccessor, ParameterTree, ParameterTreeError
@@ -17,101 +19,93 @@ try:
 except ImportError:
     pty = None
 
-@pytest.fixture
-def test_packet():
-    test_packet = struct.pack('<HH?BH', 1, 2, 0, 3, 42405)
-    yield test_packet
 
 class DummySerialPortFixture(object):
     def __init__(self):
         self.master, self.slave = pty.openpty()
-        self.data = bytearray()
-        self.decoder = AegirPacketDecoder()
-        self.maxsize = self.decoder.size * 2
 
-    def dummy_serial_writeread(self, input_packet):
-        port_name = os.ttyname(self.slave)
-        ser = serial.Serial(port_name, baudrate=57600, timeout=.1)
+        self.port_name = os.ttyname(self.slave)
 
-        ser.write(input_packet)
-        out = os.read(self.master, self.maxsize)
-        self.data.extend(out)
+        self.packet = struct.pack('<HH?BH', 1, 2, 0, 3, 42405)
+        self.packet_small = struct.pack('<HH?H', 5, 2, 0, 42405)
+        self.bad_checksum = struct.pack('<HH?BH', 1, 2, 0, 0, 42405)
+
+        self.controller = AegirController(self.port_name)
+
+    def ser_write(self, input):
+        os.write(self.master, input)
     
-    def reset_data(self):
-        self.data = bytearray()
-        self.decoder = AegirPacketDecoder()
+    # def reset_data(self):
+    #     self.data = bytearray()
+    #     self.decoder = AegirPacketDecoder()
 
-@pytest.fixture(scope="class")
+@pytest.fixture()
 def serial_fixture():
     serial_fixture = DummySerialPortFixture()
     yield serial_fixture
-
-@pytest.fixture(scope="class")
-def dummy_aegir_controller():
-    dummy_aegir_controller = AegirController()
-    yield dummy_aegir_controller
+    serial_fixture.controller.cleanup()
 
 class TestAegirController():
 
-    def test_serial_writeread(self, test_packet, serial_fixture):
-        serial_fixture.dummy_serial_writeread(test_packet)
-        output = serial_fixture.data
-        assert test_packet == output
-        serial_fixture.reset_data()
+    def test_serial_read(self, serial_fixture):
+        serial_fixture.ser_write(serial_fixture.packet)
+        while serial_fixture.controller.arduino_status == 'unknown':
+            pass
+        serial_fixture.controller.background_task_enable = False
+        output = serial_fixture.controller.decoder
+        assert serial_fixture.packet[0] == output.t1
+        assert serial_fixture.packet[2] == output.t2
+        assert serial_fixture.packet[4] == output.fault
+
+    def test_serial_packet_small(self, serial_fixture):
+        serial_fixture.ser_write(serial_fixture.packet_small)
+        time.sleep(.1)
+        serial_fixture.controller.background_task_enable = False
+        output = serial_fixture.controller.decoder
+        assert serial_fixture.packet_small[0] != output.t1
+
+    def test_no_serial_port(self):
+        controller = AegirController('/dev/doesntexist')
+        assert controller.arduino_status == "No serial port"
         
+    def test_param_tree_get(self, serial_fixture):
+        dt_vals = serial_fixture.controller.get('')
+        assert dt_vals, serial_fixture.controller.param_tree
 
-    def test_bad_packet_size(self, serial_fixture):
-        test_packet_bad = struct.pack('<HH?H', 1, 2, 0, 42405)
-        serial_fixture.dummy_serial_writeread(test_packet_bad)
-        output = serial_fixture.data
-        log = None
+    def test_param_tree_get_single_value(self, serial_fixture):
+        version_info = get_versions()
+        output = version_info['version']
+        dt_odin_ver = serial_fixture.controller.get('odin_version')
+        assert dt_odin_ver['odin_version'] == output
 
-        if len(output) > 2 and output[-1] == 0xA5 and output[-2] == 0xA5:
-            now = datetime.now()
-            if len(output) >= serial_fixture.decoder.size:
-                print([hex(val) for val in output])
-                serial_fixture.decoder.unpack(output[-(serial_fixture.decoder.size):])
-            else:
-                log = ("{} : got incorrect size packet len {} : {}".format(
-                    now, len(output), ' '.join([hex(val) for val in output])
-                ))
-        
-        assert log == ("{} : got incorrect size packet len {} : {}".format(
-                    now, len(output), ' '.join([hex(val) for val in output])
-                ))
-        serial_fixture.reset_data()
-        
-    def test_param_tree_get(self, dummy_aegir_controller):
-       dt_vals = dummy_aegir_controller.param_tree.get('')
-       assert dt_vals, dummy_aegir_controller.param_tree
-
-    def test_param_tree_get_single_values(self, dummy_aegir_controller):
-        dt_odin_ver = dummy_aegir_controller.param_tree.get('odin_version')
-        assert dt_odin_ver['odin_version'] == '1.1.0'
-
-        dt_ard_stats = dummy_aegir_controller.param_tree.get('arduino_status')
-        assert dt_ard_stats['arduino_status'] == 'unknown'
-
-    def test_param_tree_missing_value(self, dummy_aegir_controller):
+    def test_param_tree_missing_value(self, serial_fixture):
         with pytest.raises(ParameterTreeError) as excinfo:
-            dummy_aegir_controller.param_tree.get('missing')
+            serial_fixture.controller.get('missing')
         
         assert 'Invalid path: missing' in str(excinfo.value)
+        
+    def test_checksum_bad(self, serial_fixture):
+        serial_fixture.ser_write(serial_fixture.bad_checksum)
+        while serial_fixture.controller.arduino_status == 'unknown':
+            pass
+        serial_fixture.controller.background_task_enable = False
+        output = serial_fixture.controller.arduino_status
+        assert output == "Checksum invalid"
 
-    def test_arduino_status_update(self, dummy_aegir_controller, serial_fixture, test_packet):
-        serial_fixture.dummy_serial_writeread(test_packet)
-        output = serial_fixture.data
-        if len(output) > 2 and output[-1] == 0xA5 and output[-2] == 0xA5:
-            if len(output) >= serial_fixture.decoder.size:
-                    print([hex(val) for val in output])
-                    serial_fixture.decoder.unpack(output[-(serial_fixture.decoder.size):])
+    def test_good_packet_counter(self, serial_fixture):
+        serial_fixture.ser_write(serial_fixture.packet)
+        while serial_fixture.controller.arduino_status == 'unknown':
+            pass
+        serial_fixture.controller.background_task_enable = False
+        assert serial_fixture.controller.good_packet_counter == 1
 
-        ard_stat = str(serial_fixture.decoder.fault)
-        dummy_aegir_controller.arduino_status = ard_stat
-        dt_ard_stats = dummy_aegir_controller.param_tree.get('arduino_status')
-        assert dt_ard_stats['arduino_status'] == 'False'
-        serial_fixture.reset_data()
+    def test_bad_packet_counter(self, serial_fixture):
+        serial_fixture.ser_write(serial_fixture.bad_checksum)
+        while serial_fixture.controller.arduino_status == 'unknown':
+            pass
+        serial_fixture.controller.background_task_enable = False
+        assert serial_fixture.controller.bad_packet_counter == 1
 
-    def test_cleanup(self, dummy_aegir_controller):
-        dummy_aegir_controller.cleanup()
-        assert dummy_aegir_controller.background_task_enable == False
+    def test_cleanup(self, serial_fixture):
+        serial_fixture.controller.cleanup()
+        assert serial_fixture.controller.background_task_enable == False

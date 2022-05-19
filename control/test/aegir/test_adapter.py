@@ -58,6 +58,8 @@ class TestAegirAdapter():
         dummy_aegir_adapter.cleanup()
         assert dummy_aegir_adapter.controller.background_task_enable == False
 
+    
+
 class TestDummyAdapter():
 
     def test_dummy(self):
@@ -66,7 +68,7 @@ class TestDummyAdapter():
         '''
         assert True
 
-    def test_adapter_get(self, test_dummy_adapter):
+    def test_adapter_get2(self, test_dummy_adapter):
         """Test that a call to the GET method of the dummy adapter returns the correct response."""
         expected_response = {
             'response': 'DummyAdapter: GET on path {}'.format(test_dummy_adapter.path)

@@ -1,23 +1,18 @@
+"""Main adapter portion of the Aegir Adapter.
+
+This class initialises the adapter, sets the port name,
+and handles HTTP GET requests to the adapter.
+"""
 import logging
-from pickletools import uint8
-import tornado
-import time
-import serial
-import struct
-from datetime import datetime
-from concurrent import futures
 
-from tornado.ioloop import PeriodicCallback
-from tornado.concurrent import run_on_executor
-from tornado.escape import json_decode
+from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, response_types
+from odin.adapters.parameter_tree import ParameterTreeError
 
-from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
-from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
-from odin._version import get_versions
+from aegir.controller import AegirController
 
-from aegir.controller import AegirController, AegirControllerError
 
 class AegirAdapter(ApiAdapter):
+    """Initialise the adapter class for the Aegir Adapter."""
 
     def __init__(self, **kwargs):
         """Initialise the adapter object.
@@ -28,7 +23,10 @@ class AegirAdapter(ApiAdapter):
         # Initalise super class
         super().__init__(**kwargs)
 
-        self.controller = AegirController()
+        # Parse options
+        port_name = str(self.options.get('port_name', '/dev/ttyACM0'))
+
+        self.controller = AegirController(port_name)
 
         logging.debug("AegirAdapter loaded")
 
@@ -55,6 +53,10 @@ class AegirAdapter(ApiAdapter):
                                   status_code=status_code)
 
     def cleanup(self):
+        """Clean up the adapter.
 
+        This method stops the background tasks, allowing the adapter state to be cleaned up
+        correctly.
+        """
         logging.debug("Cleanup called")
         self.controller.cleanup()
