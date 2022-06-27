@@ -43,8 +43,8 @@ class AegirController():
         self.status = "unknown"
         self.time_received = "unknown"
 
-        self.t1 = "unknown"
-        self.t2 = "unknown"
+        self.temp = "unknown"
+        self.humidity = "unknown"
         self.fault = "unknown"
         self.checksum = "unknown"
         self.eop = "unknown"
@@ -130,10 +130,10 @@ class AegirController():
                 if self.decoder.csumValid is True:
                     logging.debug("Checksum VALID!")
                     self.status = "Packet received"
-                    self.packet_dict = self.decoder.make_dict()
+                    self.packet_dict = self.decoder.as_dict()
                     self.good_packet_counter += 1
                     logging.debug("{} : got packet len {} : {}".format(
-                        now, len(data), self.packet_dict))
+                        now, len(data), str(self.decoder)))
                 else:
                     logging.debug("Checksum NOT VALID!")
                     self.status = "Checksum invalid"

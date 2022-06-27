@@ -1,9 +1,17 @@
+/*Data packet building and transmitting portion of Leak Detector System.
+
+Receives incoming data values from sensor,
+builds these values into a struct, then sends this data packet out.
+Runs on Arduino Nano Every.
+
+James Foster
+*/
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <Wire.h>
 #include <Adafruit_BME280.h>
 
-SoftwareSerial mySerial(10, 11); // RX, TX
+// Define the pins to receive temperature, humidity, and fault detected data
 #define RSE_PIN 12
 #define FAULT_PIN 2
 
@@ -30,6 +38,7 @@ typedef struct aegir_data {
 
 aegir_data tx_data;
 
+// Create a checksum value for validation purposes
 int checkSum(){
   unsigned int sum = 0;
   unsigned char *p = (unsigned char *)&tx_data;
@@ -49,8 +58,7 @@ void setup() {
 
   Serial.println("aegir startup!");
 
-  // set the data rate for the SoftwareSerial port
-  //mySerial.begin(57600);
+  // set the data rate for the Serial port
   Serial1.begin(57600);
 
   // Slave transmits data to master so set RSE pin high
@@ -58,6 +66,8 @@ void setup() {
   digitalWrite(RSE_PIN, HIGH);
 
   unsigned status = bme.begin();  
+
+  // If invalid sensor, print an error
   if (!status) {
       Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
       Serial.print("SensorID was: 0x"); Serial.println(bme.sensorID(),16);
@@ -84,8 +94,6 @@ void setup() {
   tx_data.fault = false;
 
   tx_data.checksum = 0;
-  // Serial.println(tx_data.checksum);
-  // Serial.println(sizeof(tx_data));
   
   pinMode(FAULT_PIN, INPUT);
 
@@ -93,13 +101,13 @@ void setup() {
 
 void loop() 
 {
-
+  // Receive temperature, humidity, and fault detected values from digital pins
   Serial.print("Temperature = ");
-  Serial.print(bme.readTemperature()); //Multiply out the decimal place to turn this into an unsigned int
+  Serial.print(bme.readTemperature());
   Serial.println(" °C");
 
   Serial.print("Humidity = ");
-  Serial.print(bme.readHumidity()); //Same could be done here or this could just use float
+  Serial.print(bme.readHumidity());
   Serial.println(" %");
 
   int fault_val = digitalRead(FAULT_PIN);
@@ -122,24 +130,14 @@ void loop()
   // incrementing index until whole structure is sent
   while (idx < sizeof(tx_data))
   {
-    //mySerial.write(ptr[idx]);
     Serial1.write(ptr[idx]);
     idx++;
   }
 
-  // Increment one temperature field in data structure to simulate changing values
-  // tx_data.t2+=2;
-  // if (tx_data.t2 >= 1000){
-  //   tx_data.t2 = 0;
-  // }
-
-  // Toggle fault flag to opposite state
-  //tx_data.fault = !tx_data.fault;
+  // Set data structure fault value to digital read fault_val.
   tx_data.fault = (bool)fault_val;
-  // tx_data.checksum = checkSum();
 
   // Delay 1s before next loop
   delay(1000);
-  // Serial.println(tx_data.checksum);
 
 }
