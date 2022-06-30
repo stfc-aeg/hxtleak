@@ -27,10 +27,7 @@
               <a class="nav-link" href="#">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#about">About</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#contact">Contact</a>
+              <a class="nav-link" href="#charts">Charts</a>
             </li>
           </ul>
         </div>
@@ -39,27 +36,54 @@
       <div class="container">
         <div class="aegir">
           <h1>AEGIR</h1>
-          <p class="lead">Welcome to the AEGIR adapter demo!</p>
-          <p>API version is:&nbsp;<span id="api-version">&nbsp;</span></p>
-          <p>Registered API adapters:&nbsp;<span id="api-adapters">&nbsp;</span></p>
-          <p>Arduino Status:&nbsp;<span id="status">&nbsp;</span></p><br>
-          <p>Temperature:&nbsp;<span id="packet-temp">&nbsp;</span>°C</p>
-          <p>Humidity:&nbsp;<span id="packet-humidity">&nbsp;</span>%</p>
-          <p>Fault detected:&nbsp;<span id="packet-fault">&nbsp;</span></p>
-          <p>Checksum value:&nbsp;<span id="packet-checksum">&nbsp;</span></p>
-          <p>EOP value:&nbsp;<span id="packet-eop">&nbsp;</span></p><br>
-          <p>No. of packets received:&nbsp;<span id="good-packets">&nbsp;</span></p>
-          <p>No. of failed packets:&nbsp;<span id="bad-packets">&nbsp;</span></p>
-          <p>Time Received:&nbsp;<span id="time-receive">&nbsp;</span></p>
+          <p class="lead text-center">
+            Current Status:&nbsp;<span id="status">&nbsp;</span>
+          </p>
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="card">
+                <div class="card-body">
+                  <p>Temperature:&nbsp;<span id="packet-temp">&nbsp;</span>°C</p>
+                  <p>Humidity:&nbsp;<span id="packet-humidity">&nbsp;</span>%</p>
+                  <p>Fault detected:&nbsp;<span id="packet-fault">&nbsp;</span></p>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="card">
+                <div class="card-body">
+                  <p>No. of packets received:&nbsp;<span id="good-packets">&nbsp;</span></p>
+                  <p>No. of failed packets:&nbsp;<span id="bad-packets">&nbsp;</span></p>
+                  <p>Time Received:&nbsp;<span id="time-receive">&nbsp;</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="alert alert-danger collapse" id="failed-packet" role="alert" aria-live="assertive">
+            <span>
+              <p>A packet has failed to be received!</p>
+            </span>
+          </div>
+          <div class="alert alert-danger collapse" id="fault-detected" role="alert" aria-live="assertive">
+            <span>
+              <p>A fault has been detected!</p>
+            </span>
+          </div>
         </div>
 
-        <div class="col-12">
-          <h6>Temperature</h6>
-          <canvas id="temperature-chart" height=50 width=200 style="height:50px; width:200px"></canvas>
-          <h6>Humidity</h6>
-          <canvas id="humidity-chart" height=50 width=200 style="height:50px; width:200px"></canvas>
-        </div> <!-- col -->
-      </div><!-- /.container -->
+        <div class="charts">
+          <div class="card">
+            <div class="card-body">
+              <div class="col-sm-2"><button type="button" class="btn btn-outline-primary" onclick="toggle_chart_speed()">Toggle Chart Speed</button></div>
+              <br>
+              <h6>Temperature</h6>
+              <canvas id="temperature-chart" height=50 width=200 style="height:50px; width:200px"></canvas><br>
+              <h6>Humidity</h6>
+              <canvas id="humidity-chart" height=50 width=200 style="height:50px; width:200px"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
 
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
