@@ -21,10 +21,18 @@ class AegirPacketDecoder(struct.Struct):
         The constructor uses a super init to create the structure
         for a decoded packet, as well as setting the expected values to a default.
         """
-        super().__init__('<HH?BH')
+        super().__init__('<HHHHffff???BH')
 
-        self.t1 = None
-        self.t2 = None
+        self.adc_val1 = None
+        self.adc_val2 = None
+        self.adc_val3 = None
+        self.adc_val4 = None
+        self.temp = None
+        self.humidity = None
+        self.probe1 = None
+        self.probe2 = None
+        self.leak_detected = None
+        self.cont = None
         self.fault = None
         self.checksum = None
         self.eop = None
@@ -46,7 +54,10 @@ class AegirPacketDecoder(struct.Struct):
 
         :param buffer: buffer for received raw data packet input
         """
-        (self.t1, self.t2, self.fault, self.checksum, self.eop) = super().unpack(buffer)
+        (self.adc_val1, self.adc_val2, self.adc_val3, self.adc_val4,
+         self.temp, self.humidity, self.probe1, self.probe2,
+         self.leak_detected, self.cont, self.fault,
+         self.checksum, self.eop) = super().unpack(buffer)
 
     def checkSumCheck(self, buffer):
         """Verify the checksum value of the packet using an XOR checksum.
@@ -67,11 +78,21 @@ class AegirPacketDecoder(struct.Struct):
         else:
             self.csumValid = False
 
-    def make_dict(self):
+    def as_dict(self):
         """Return the values as a dictionary."""
         dictionary = {
-            "t1": self.t1,
-            "t2": self.t2,
+            "adc_val1": (self.adc_val1),
+            "adc_val2": (self.adc_val2),
+            "adc_val3": (self.adc_val3),
+            "adc_val4": (self.adc_val4),
+
+            "temp": (self.temp),
+            "humidity": (self.humidity),
+            "probe1": (self.probe1),
+            "probe2": (self.probe2),
+
+            "leak_detected": self.leak_detected,
+            "cont": self.cont,
             "fault": self.fault,
             "checksum": self.checksum,
             "eop": hex(self.eop)
@@ -80,5 +101,10 @@ class AegirPacketDecoder(struct.Struct):
 
     def __str__(self):
         """Return the values as a formatted string."""
-        return "t1={} t2={} fault={} checksum={} eop={:#x}".format(
-            self.t1, self.t2, self.fault, self.checksum, self.eop)
+        return """
+        adc_val1={} adc_val2={} adc_val3={} adc_val4={} 
+        temp={:.2f} humidity={:.2f} probe1={:.2f} probe2={:.2f} 
+        leak_detected={} cont={} fault={} checksum={} eop={:#x}""".format(
+            self.adc_val1, self.adc_val2, self.adc_val3, self.adc_val4,
+            self.temp, self.humidity, self.probe1, self.probe2,
+            self.leak_detected, self.cont, self.fault, self.checksum, self.eop)
