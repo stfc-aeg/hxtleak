@@ -30,7 +30,8 @@ public:
     //! \return - floating point temperature in Celsius
     float temperature(uint16_t raw_adc_val)
     {
-        return (float)raw_adc_val * 0.1972 - 491.3;
+        //return (float)raw_adc_val * 0.1972 - 491.3;
+        return (float)raw_adc_val * 0.096 - 262.12;
     }
 };
 
