@@ -7,8 +7,9 @@ James Foster
 """
 import logging
 
-from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, response_types
+from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 from odin.adapters.parameter_tree import ParameterTreeError
+from odin.util import decode_request_body
 
 from aegir.controller import AegirController
 
@@ -53,6 +54,30 @@ class AegirAdapter(ApiAdapter):
 
         return ApiAdapterResponse(response, content_type=content_type,
                                   status_code=status_code)
+
+    @request_types('application/json', 'application/vnd.odin-native')
+    @response_types('application/json', default='application/json')
+    def put(self, path, request):
+        """Handle an HTTP PUT request.
+        This method handles an HTTP PUT request, decoding the request and attempting to set values
+        in the asynchronous parameter tree as appropriate.
+        :param path: URI path of request
+        :param request: HTTP request object
+        :return: an ApiAdapterResponse object containing the appropriate response
+        """
+        content_type = 'application/json'
+
+        try:
+            data = decode_request_body(request)
+            response = self.controller.set(path, data)
+            status_code = 200
+        except ParameterTreeError as param_error:
+            response = {'error': str(param_error)}
+            status_code = 400
+
+        return ApiAdapterResponse(
+            response, content_type=content_type, status_code=status_code
+        )
 
     def cleanup(self):
         """Clean up the adapter.

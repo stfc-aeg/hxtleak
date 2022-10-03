@@ -16,7 +16,8 @@ from tornado.concurrent import run_on_executor
 from odin.adapters.parameter_tree import ParameterTree
 
 from aegir.packet_decoder import AegirPacketDecoder
-
+from aegir.gpio import Gpio
+from aegir.outlet_relay import OutletRelay
 
 class AegirControllerError(Exception):
     """Simple exception class to wrap lower-level exceptions."""
@@ -56,6 +57,22 @@ class AegirController():
         # Initialise the packet decoder class
         self.decoder = AegirPacketDecoder()
 
+        # Define the fault detect GPIO pin, add an event callback and initialise the fault state
+        # value
+        self.fault_detect = Gpio("P8_12", Gpio.IN)
+        self.fault_detect.add_event_detect(Gpio.BOTH, self.fault_event_detected)
+        self.fault_state = self.fault_detect.read()
+
+        # Define the RS485 driver RO and DI GPIO pins and set both low to enable RX, disable TX
+        self.rs485_ro = Gpio("P9_23", Gpio.OUT)
+        self.rs485_di = Gpio("P9_27", Gpio.OUT)
+        self.rs485_ro.write(Gpio.LOW)
+        self.rs485_di.write(Gpio.LOW)
+
+        # Define the chiller and DAQ outlet relay controllers
+        self.chiller_outlet = OutletRelay("P8_14")
+        self.daq_outlet = OutletRelay("P8_16")
+
         # Initialise the serial port
         try:
             self.serial_input = serial.Serial(port=self.port_name, baudrate=57600, timeout=.1)
@@ -71,14 +88,17 @@ class AegirController():
             'time_received' : (lambda: self.time_received, None),
             'good_packets' : (lambda: self.good_packet_counter, None),
             'bad_packets' : (lambda: self.bad_packet_counter, None),
+            'outlets' : {
+                'chiller': self.chiller_outlet.tree(),
+                'daq': self.daq_outlet.tree(),
+            },
+            'fault' : (lambda: bool(self.fault_state), None),
         })
 
         # Launch the background task
         if self.background_task_enable:
-            logging.debug(
-                "Launching background task"
-            )
-            self.background_task()
+            logging.debug("Launching background tasks")
+            self.receive_packets()
 
     def get(self, path):
         """Get the parameter tree.
@@ -89,6 +109,11 @@ class AegirController():
         """
         return self.param_tree.get(path)
 
+    def set(self, path, data):
+
+        self.param_tree.set(path, data)
+        return self.param_tree.get(path)
+
     def cleanup(self):
         """Clean up the controller instance.
 
@@ -97,13 +122,13 @@ class AegirController():
         """
         self.background_task_enable = False
 
-    @run_on_executor
-    def background_task(self):
-        """Run the background task on a thread executor continuously in a while loop."""
-        while self.background_task_enable:
-            self.process_packets()
+    def fault_event_detected(self, _):
 
-    def process_packets(self):
+        self.fault_state = self.fault_detect.read()
+        logging.debug("Fault transition detected, state is now: {}".format(self.fault_state))
+
+    @run_on_executor
+    def receive_packets(self):
         """Run the main controller task.
 
         This method reads data from the serial input and uses the packet decoder class to
@@ -114,37 +139,40 @@ class AegirController():
         maxsize = self.decoder.size * 2
         data = bytearray()
 
-        data.extend(self.serial_input.read(maxsize))
+        while self.background_task_enable:
 
-        if self.decoder.packet_complete(data):
+            data.extend(self.serial_input.read(maxsize))
 
-            now = datetime.now()
-            self.time_received = str(now)
+            if self.decoder.packet_complete(data):
 
-            # Unpack the received packet and handle incorrect packet size
-            if len(data) >= self.decoder.size:
-                self.decoder.unpack(data[-(self.decoder.size):])
+                now = datetime.now()
+                #self.time_received = str(now.isoformat())
+                self.time_received = now.strftime("%d/%m/%y %X")
 
-                # Handles the validation of the checksum value
-                self.decoder.checkSumCheck(data[-(self.decoder.size):])
-                if self.decoder.csumValid is True:
-                    logging.debug("Checksum VALID!")
-                    self.status = "Packet received"
-                    self.packet_dict = self.decoder.as_dict()
-                    self.good_packet_counter += 1
-                    logging.debug("{} : got packet len {} : {}".format(
-                        now, len(data), str(self.decoder)))
+                # Unpack the received packet and handle incorrect packet size
+                if len(data) >= self.decoder.size:
+                    self.decoder.unpack(data[-(self.decoder.size):])
+
+                    # Handles the validation of the checksum value
+                    self.decoder.checkSumCheck(data[-(self.decoder.size):])
+                    if self.decoder.csumValid is True:
+                        #logging.debug("Checksum VALID!")
+                        self.status = "Packet received"
+                        self.packet_dict = self.decoder.as_dict()
+                        self.good_packet_counter += 1
+                        #logging.debug("{} : got packet len {} : {}".format(
+                        #    now, len(data), str(self.decoder)))
+                    else:
+                        logging.debug("Checksum NOT VALID!")
+                        self.status = "Checksum invalid"
+                        self.bad_packet_counter += 1
+
                 else:
-                    logging.debug("Checksum NOT VALID!")
-                    self.status = "Checksum invalid"
+                    self.status = "Incorrect packet size"
+                    logging.debug("{} : got incorrect size packet len {} : {}".format(
+                        now, len(data), ' '.join([hex(val) for val in data])
+                    ))
                     self.bad_packet_counter += 1
 
-            else:
-                self.status = "Incorrect packet size"
-                logging.debug("{} : got incorrect size packet len {} : {}".format(
-                    now, len(data), ' '.join([hex(val) for val in data])
-                ))
-                self.bad_packet_counter += 1
-
-            # Reset the data bytearray
-            data = bytearray()
+                # Reset the data bytearray
+                data = bytearray()

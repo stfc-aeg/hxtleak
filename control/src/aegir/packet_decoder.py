@@ -72,7 +72,7 @@ class AegirPacketDecoder(struct.Struct):
         for i in range(packet_size):
             checkSumCheck ^= buffer[i]
 
-        logging.debug('Python-side Checksum = ' + str(checkSumCheck))
+        #logging.debug('Python-side Checksum = ' + str(checkSumCheck))
         if checkSumCheck - self.checksum == 0:
             self.csumValid = True
         else:
