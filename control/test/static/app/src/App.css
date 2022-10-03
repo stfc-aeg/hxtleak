@@ -3,10 +3,17 @@
 }
 
 body {
-  padding-top: 50px;
+  padding-top: 2.0rem;
 }
 
 .aegir {
   padding: 40px 15px;
-  text-align: center;
+}
+
+.container-fluid > .row {
+  margin-bottom: 1.5rem!important;
+}
+
+.status_card {
+  min-height: 100%;
 }

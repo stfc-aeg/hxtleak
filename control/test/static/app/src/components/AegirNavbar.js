@@ -12,13 +12,13 @@ function AegirNavbar() {
           className="d-inline-block align-top"
           alt="ODIN logo"
         />{' '}
-        AEGIR
+        HEXITEC
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="me-auto">
-          <Nav.Link href="#home">Home</Nav.Link>
-          <Nav.Link href="#charts">Charts</Nav.Link>
+          {/* <Nav.Link href="#home">Home</Nav.Link>
+          <Nav.Link href="#charts">Charts</Nav.Link> */}
         </Nav>
       </Navbar.Collapse>
     </Navbar>
