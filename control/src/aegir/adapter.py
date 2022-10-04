@@ -12,7 +12,7 @@ from odin.adapters.parameter_tree import ParameterTreeError
 from odin.util import decode_request_body
 
 from aegir.controller import AegirController
-
+from aegir.util import AegirError
 
 class AegirAdapter(ApiAdapter):
     """Main adapter class for the Aegir Adapter."""
@@ -46,7 +46,7 @@ class AegirAdapter(ApiAdapter):
         try:
             response = self.controller.get(path)
             status_code = 200
-        except ParameterTreeError as e:
+        except (ParameterTreeError, AegirError) as e:
             response = {'error': str(e)}
             status_code = 400
 
@@ -71,8 +71,8 @@ class AegirAdapter(ApiAdapter):
             data = decode_request_body(request)
             response = self.controller.set(path, data)
             status_code = 200
-        except ParameterTreeError as param_error:
-            response = {'error': str(param_error)}
+        except (ParameterTreeError, AegirError) as e:
+            response = {'error': str(e)}
             status_code = 400
 
         return ApiAdapterResponse(
