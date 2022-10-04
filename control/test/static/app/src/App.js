@@ -31,7 +31,7 @@ const App = () =>{
 
   useEffect(() => {
     doUpdate();
-    const timer_id = setInterval(doUpdate, 1000);
+    const timer_id = setInterval(doUpdate, 500);
     return () => {
       clearInterval(timer_id);
     }

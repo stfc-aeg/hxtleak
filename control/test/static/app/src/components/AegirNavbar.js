@@ -12,7 +12,7 @@ function AegirNavbar() {
           className="d-inline-block align-top"
           alt="ODIN logo"
         />{' '}
-        HEXITEC
+        HEXITEC Leak Detector
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
