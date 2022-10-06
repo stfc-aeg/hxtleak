@@ -43,7 +43,9 @@ class AdapterEndpoint
                 headers: {'Accept': 'application/json'},
                 mode: 'cors'
             }
-        );
+        ).catch((error) => {
+            throw new Error(`Network error sending request to ${url}`);
+        });
 
         if (!response.ok) {
             var message;

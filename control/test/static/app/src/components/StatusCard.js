@@ -1,10 +1,6 @@
 import React from 'react';
 import Card from 'react-bootstrap/Card';
 
-const StatusLine = ({ name, value, unit }) => (
-  <p>{name}:&nbsp;{value}{unit}</p>
-);
-
 const StatusCard = (props) => (
   <Card className="status_card">
     <Card.Header as="b">

@@ -5,7 +5,7 @@ import {ParameterTable, ParameterEntry} from './ParameterTable';
 
 const AegirFrontendStatus = ({ state }) => {
 
-  const env_status = state ? [
+  const env_status = (state && state.packet_info) ? [
     {name: "Board temperature", value: state.packet_info.temp.toFixed(1), unit: "°C"},
     {name: "Board humidity", value: state.packet_info.humidity.toFixed(1), unit: "%"},
     {name: "Temperature probe 1", value: state.packet_info.probe1.toFixed(1), unit: "°C"},

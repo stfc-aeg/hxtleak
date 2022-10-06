@@ -2,6 +2,10 @@
   text-align: center;
 }
 
+.navbar-brand {
+  padding-left: 30px;
+}
+
 body {
   padding-top: 2.0rem;
 }
