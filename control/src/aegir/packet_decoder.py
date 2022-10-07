@@ -3,10 +3,9 @@
 This handles the unpacking and validation of received packets,
 as well as the formatting of the decoded output.
 
-James Foster
+James Foster, STFC Detector Systems Software Group
 """
 import struct
-import logging
 
 
 class AegirPacketDecoder(struct.Struct):
@@ -105,8 +104,8 @@ class AegirPacketDecoder(struct.Struct):
     def __str__(self):
         """Return the values as a formatted string."""
         return """
-        adc_val1={} adc_val2={} adc_val3={} adc_val4={} 
-        temp={:.2f} humidity={:.2f} probe1={:.2f} probe2={:.2f} 
+        adc_val1={} adc_val2={} adc_val3={} adc_val4={}
+        temp={:.2f} humidity={:.2f} probe1={:.2f} probe2={:.2f}
         leak_detected={} cont={} fault={} checksum={} eop={:#x}""".format(
             self.adc_val1, self.adc_val2, self.adc_val3, self.adc_val4,
             self.temp, self.humidity, self.probe1, self.probe2,

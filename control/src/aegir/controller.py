@@ -4,7 +4,7 @@ The controller handles the main background task which receives raw data packets
 through a serial port and handles them, and the parameter tree which displays
 information from the data packet after it has been decoded.
 
-James Foster
+James Foster, STFC Detector Systems Software Group
 """
 import logging
 import serial
@@ -49,7 +49,7 @@ class AegirController():
         """
         self.port_name = port_name
         self.packet_recv_timeout = packet_recv_timeout
-        self.background_task_enable = True
+        self.receive_task_enable = True
 
         # Initialise the values of the parameter tree and packet information
         self.status = PacketReceiveState.UNKNOWN
@@ -61,7 +61,7 @@ class AegirController():
         self.checksum = "unknown"
         self.eop = "unknown"
 
-        self.packet_dict = "unknown"
+        self.packet_data = None
         self.good_packet_counter = 0
         self.bad_packet_counter = 0
 
@@ -91,12 +91,12 @@ class AegirController():
         except serial.serialutil.SerialException:
             logging.error('Failed to open serial port')
             self.status = "No serial port"
-            self.background_task_enable = False
+            self.receive_task_enable = False
 
         # Store all information in a parameter tree
         self.param_tree = ParameterTree({
             'status' : (lambda: str(self.status), None),
-            'packet_info' : (lambda: self.packet_dict, None),
+            'packet_info' : (lambda: self.packet_data, None),
             'time_received' : (self._get_time_received, None),
             'good_packets' : (lambda: self.good_packet_counter, None),
             'bad_packets' : (lambda: self.bad_packet_counter, None),
@@ -108,7 +108,7 @@ class AegirController():
         })
 
         # Launch the background task
-        if self.background_task_enable:
+        if self.receive_task_enable:
             logging.debug("Launching background tasks")
             self.receive_packets()
 
@@ -142,10 +142,10 @@ class AegirController():
     def cleanup(self):
         """Clean up the controller instance.
 
-        This method stops the background tasks, allowing the adapter state to be cleaned up
+        This method stops the background task, allowing the adapter state to be cleaned up
         correctly.
         """
-        self.background_task_enable = False
+        self.receive_task_enable = False
 
     def fault_event_detected(self, _):
         """Event callback for the fault detect GPIO pin.
@@ -172,7 +172,7 @@ class AegirController():
 
     @run_on_executor
     def receive_packets(self):
-        """Run the main controller task.
+        """Run the main packet receiver task.
 
         This method reads data from the serial input and uses the packet decoder class to
         parse the data. The values in the parameter tree are updated with the appropriate
@@ -180,44 +180,49 @@ class AegirController():
         """
         # Initialise the decoder maximum size and serial input buffer
         maxsize = self.decoder.size * 2
-        data = bytearray()
+        input_buf = bytearray()
 
-        while self.background_task_enable:
+        # Loop while this task is enabled
+        while self.receive_task_enable:
 
-            data.extend(self.serial_input.read(maxsize))
+            # Append any available data to the input buffer
+            input_buf.extend(self.serial_input.read(maxsize))
 
-            if self.decoder.packet_complete(data):
+            # If the input buffer terminates in an end of packet marker, process accordingly
+            if self.decoder.packet_complete(input_buf):
 
+                # Record time that packet was received
                 self.time_received = datetime.now()
 
-                # Unpack the received packet and handle incorrect packet size
-                if len(data) >= self.decoder.size:
-                    self.decoder.unpack(data[-(self.decoder.size):])
+                # Unpack a packet from the input buffer if enough data received
+                if len(input_buf) >= self.decoder.size:
 
-                    # Varify that the transmitted packet checksum is correct
-                    if self.decoder.verify_checksum(data[-(self.decoder.size):]):
+                    self.decoder.unpack(input_buf[-(self.decoder.size):])
+
+                    # Verify that the transmitted packet checksum is correct
+                    if self.decoder.verify_checksum(input_buf[-(self.decoder.size):]):
                         self.status = PacketReceiveState.OK
-                        self.packet_dict = self.decoder.as_dict()
+                        self.packet_data = self.decoder.as_dict()
                         self.good_packet_counter += 1
-                        #logging.debug("{} : got packet len {} : {}".format(
-                        #    now, len(data), str(self.decoder)))
                     else:
-                        logging.warning("Received packet with bad checksum {%02X}".format(
-                            self.decoder.checksum
-                        ))
+                        logging.warning(
+                            "Received packet with bad checksum {:02X}".format(self.decoder.checksum)
+                        )
                         self.status = PacketReceiveState.INVALID_CHECKSUM
                         self.bad_packet_counter += 1
 
+                # Otherwise handle an invalid sized packet
                 else:
                     self.status = PacketReceiveState.INVALID_SIZE
                     logging.warning("Received incorrectly size packet with length {} : {}".format(
-                        len(data), ' '.join([hex(val) for val in data])
+                        len(input_buf), ' '.join([hex(val) for val in input_buf])
                     ))
                     self.bad_packet_counter += 1
 
                 # Reset the data bytearray
-                data = bytearray()
+                input_buf = bytearray()
 
+            # Check if the packet receive timeout has been received and set status if so
             else:
 
                 recv_delta = (datetime.now() - self.time_received).total_seconds()
@@ -225,5 +230,3 @@ class AegirController():
                     if set.status != PacketReceiveState.TIMEOUT:
                         logging.warning("Packet receive timed out")
                     self.status = PacketReceiveState.TIMEOUT
-
-

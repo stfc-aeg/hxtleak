@@ -3,7 +3,7 @@
 This class initialises the adapter which sets the port name and creates
 the controller object, and handles HTTP GET requests to the adapter.
 
-James Foster
+James Foster, STFC Detector Systems Software Group
 """
 import logging
 
@@ -13,6 +13,7 @@ from odin.util import decode_request_body
 
 from aegir.controller import AegirController
 from aegir.util import AegirError
+
 
 class AegirAdapter(ApiAdapter):
     """Main adapter class for the Aegir Adapter."""
