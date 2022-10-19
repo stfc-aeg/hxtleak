@@ -6,9 +6,9 @@ import Col from 'react-bootstrap/Col';
 import StatusCard from './StatusCard';
 import StateControlSwitch from './StateControlSwitch';
 
-const AegirControl = (props) => {
+const AegirControl = ({ endpoint }) => {
 
-  const {state} = props;
+  const state = endpoint.data;
 
   const chiller_outlet_disabled = state ? !state.outlets.chiller.enabled : true;
   const chiller_outlet_state = state ? state.outlets.chiller.state : false;
@@ -23,7 +23,7 @@ const AegirControl = (props) => {
             title="Chiller"
             disabled={chiller_outlet_disabled}
             state={chiller_outlet_state}
-            endpoint={props.endpoint}
+            endpoint={endpoint}
             path="outlets/chiller/state"
           />
         </Col>
@@ -32,7 +32,7 @@ const AegirControl = (props) => {
             title="DAQ"
             disabled={daq_outlet_disabled}
             state={daq_outlet_state}
-            endpoint={props.endpoint}
+            endpoint={endpoint}
             path="outlets/daq/state"
           />
         </Col>

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-import AdapterEndpoint from '../odin_control';
+import { useAdapterEndpoint } from './AdapterEndpoint';
 
 import { AegirErrorOutlet, useErrorOutlet } from './AegirErrorContext';
 import AegirNavbar from './AegirNavbar';
@@ -16,27 +16,12 @@ const AegirApp = (props) => {
 
   const { endpoint_url } = props;
 
-  const endpoint = useMemo(() => new AdapterEndpoint("aegir", endpoint_url), [endpoint_url]);
+  const endpoint = useAdapterEndpoint("aegir", endpoint_url, {interval: 500});
+
   const setError = useErrorOutlet();
-
-  const [state, updateState] = useState(null);
-
   useEffect(() => {
-
-    const timer_id = setInterval(() => {
-      endpoint.get("")
-      .then(result => {
-        updateState(result);
-      })
-      .catch(error => {
-        setError(error);
-      });
-
-    }, 500);
-    return () => {
-      clearInterval(timer_id);
-    }
-  }, [endpoint, setError]);
+    setError(endpoint.error);
+  }, [endpoint.error, setError]);
 
   return (
     <div className="aegir">
@@ -45,18 +30,18 @@ const AegirApp = (props) => {
       <Container fluid>
         <Row>
           <Col>
-            <AegirControl endpoint={endpoint} state={state} />
+            <AegirControl endpoint={endpoint} />
           </Col>
           <Col>
-            <AegirSystemStatus state={state} />
+            <AegirSystemStatus state={endpoint.data} />
           </Col>
         </Row>
         <Row>
           <Col>
-            <AegirFrontendStatus state={state} />
+            <AegirFrontendStatus state={endpoint.data} />
           </Col>
           <Col>
-            <AegirLinkStatus state={state} />
+            <AegirLinkStatus state={endpoint.data} />
           </Col>
         </Row>
       </Container>

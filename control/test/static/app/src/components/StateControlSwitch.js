@@ -22,7 +22,9 @@ const StateControlSwitch = (props) => {
   const onChange = (value) => {
     endpoint.put({ [param]: value}, path)
     .then(result => {
-      setState(result[param])
+      if (result) {
+        setState(result[param]);
+      }
     })
     .catch(error => {
       console.log(error.message);
