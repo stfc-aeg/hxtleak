@@ -1,0 +1,23 @@
+.header {
+  text-align: center;
+}
+
+.navbar-brand {
+  padding-left: 30px;
+}
+
+body {
+  padding-top: 2.0rem;
+}
+
+.aegir {
+  padding: 40px 15px;
+}
+
+.container-fluid > .row {
+  margin-bottom: 1.5rem!important;
+}
+
+.status_card {
+  min-height: 100%;
+}

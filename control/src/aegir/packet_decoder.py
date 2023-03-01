@@ -3,10 +3,9 @@
 This handles the unpacking and validation of received packets,
 as well as the formatting of the decoded output.
 
-James Foster
+James Foster, STFC Detector Systems Software Group
 """
 import struct
-import logging
 
 
 class AegirPacketDecoder(struct.Struct):
@@ -37,7 +36,7 @@ class AegirPacketDecoder(struct.Struct):
         self.checksum = None
         self.eop = None
 
-        self.csumValid = None
+        self.checksum_valid = None
 
     def packet_complete(self, buffer):
         """Verify the packet is complete.
@@ -59,24 +58,27 @@ class AegirPacketDecoder(struct.Struct):
          self.leak_detected, self.cont, self.fault,
          self.checksum, self.eop) = super().unpack(buffer)
 
-    def checkSumCheck(self, buffer):
+        self.checksum_valid = None
+
+    def verify_checksum(self, buffer):
         """Verify the checksum value of the packet using an XOR checksum.
 
         :param buffer: buffer for received raw data packet input
         """
-        checkSumCheck = 0
+        calc_checksum = 0
         csum_and_eop_size = 3
         packet_size = (len(buffer) - csum_and_eop_size)
         i = 0
 
         for i in range(packet_size):
-            checkSumCheck ^= buffer[i]
+            calc_checksum ^= buffer[i]
 
-        logging.debug('Python-side Checksum = ' + str(checkSumCheck))
-        if checkSumCheck - self.checksum == 0:
-            self.csumValid = True
+        if calc_checksum == self.checksum:
+            self.checksum_valid = True
         else:
-            self.csumValid = False
+            self.checksum_valid = False
+
+        return self.checksum_valid
 
     def as_dict(self):
         """Return the values as a dictionary."""
@@ -102,8 +104,8 @@ class AegirPacketDecoder(struct.Struct):
     def __str__(self):
         """Return the values as a formatted string."""
         return """
-        adc_val1={} adc_val2={} adc_val3={} adc_val4={} 
-        temp={:.2f} humidity={:.2f} probe1={:.2f} probe2={:.2f} 
+        adc_val1={} adc_val2={} adc_val3={} adc_val4={}
+        temp={:.2f} humidity={:.2f} probe1={:.2f} probe2={:.2f}
         leak_detected={} cont={} fault={} checksum={} eop={:#x}""".format(
             self.adc_val1, self.adc_val2, self.adc_val3, self.adc_val4,
             self.temp, self.humidity, self.probe1, self.probe2,
