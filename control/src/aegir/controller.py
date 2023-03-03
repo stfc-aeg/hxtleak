@@ -227,6 +227,6 @@ class AegirController():
 
                 recv_delta = (datetime.now() - self.time_received).total_seconds()
                 if recv_delta > self.packet_recv_timeout:
-                    if set.status != PacketReceiveState.TIMEOUT:
+                    if self.status != PacketReceiveState.TIMEOUT:
                         logging.warning("Packet receive timed out")
                     self.status = PacketReceiveState.TIMEOUT
