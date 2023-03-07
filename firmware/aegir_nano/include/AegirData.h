@@ -12,12 +12,12 @@
 
 #include <Arduino.h>
 
-#define AEGIR_ADC_CHANNELS 4  // Number of ADC channels
+#define AEGIR_SENSOR_THRESHOLDS 4 // Number of sensor thresholds
 #define AEGIR_TEMP_PROBES  2  // Number of external temperature probes
 
 struct AegirData
 {
-    uint16_t adc_val[AEGIR_ADC_CHANNELS];       // Raw ADC channel values
+    float threshold[AEGIR_SENSOR_THRESHOLDS];  // Sensor thresholds
 
     float board_temperature;                    // Board temperature (Celsius)
     float board_humidity;                       // Board relative humidity (%)
@@ -26,6 +26,7 @@ struct AegirData
     bool leak_detected;                         // Leak detection flag
     bool leak_continuity;                       // Leak continuity flag
     bool fault_condition;                       // Fault condition flag
+    bool warning_condition;                     // Warning condition flag
     uint8_t checksum;                           // XOR checksum
     const uint16_t eop = 0xA5A5;                // End of packet marker
 
