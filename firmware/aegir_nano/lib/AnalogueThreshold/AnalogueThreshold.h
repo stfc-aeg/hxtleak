@@ -12,8 +12,9 @@
 
 #include <Arduino.h>
 
-#define DEFAULT_NUM_SAMPLES 5 // Default number of samples in rolling average
-#define MAX_ADC_VAL 1023      // Maximum ADC value (12-bit Arduino ADC on analogue inputs)
+#define DEFAULT_NUM_SAMPLES 5  // Default number of samples in rolling average
+#define DEFAULT_HYSTERESIS 0.0 // Default threshold hysteresis value
+#define MAX_ADC_VAL 1023       // Maximum ADC value (12-bit Arduino ADC on analogue inputs)
 
 //! Analogue threshold class
 //!
@@ -28,7 +29,7 @@ public:
     //! Constructors
     AnalogueThreshold(
         const char* name, pin_size_t pin_number, float min_val, float max_val,
-        uint8_t num_samples=DEFAULT_NUM_SAMPLES
+        float hysteresis=DEFAULT_HYSTERESIS, uint8_t num_samples=DEFAULT_NUM_SAMPLES
     );
 
     AnalogueThreshold(const char* name, pin_size_t pin_number, uint8_t num_samples=DEFAULT_NUM_SAMPLES);
@@ -48,6 +49,9 @@ public:
     //! Get the rolling average raw ADC sample value
     float sample_mean(void);
 
+    //! Compare a given value with the threshold
+    bool compare(float reading);
+
 private:
     String name_;              // Name of the threshold
     pin_size_t pin_number_;    // Analogue pin number to read
@@ -55,10 +59,12 @@ private:
     int* samples_;             // Pointer to array of samples
     uint8_t write_ptr_;        // Current sample array write pointer
     uint8_t saved_;            // Number of saved samples
+    bool state_ok_;            // Saved threshold comparison state
 
     float min_val_;            // Minimum threshold value (corresponding to 0 input value)
     float max_val_;            // Maximum threshold value (corresponding to full-scale input value)
     float range_;              // Calculated threshold range
+    float hysteresis_;         // Threshold comparison hysterisis
 
 };
 

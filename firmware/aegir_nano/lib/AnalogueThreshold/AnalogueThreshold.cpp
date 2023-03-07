@@ -21,13 +21,18 @@
 //! \param[in] num_samples - (optional) number of samples for rolling average
 //!
 AnalogueThreshold::AnalogueThreshold(
-    const char* name, pin_size_t pin_number, float min_val, float max_val, uint8_t num_samples) :
+    const char* name, pin_size_t pin_number, float min_val, float max_val,
+    float hysteresis, uint8_t num_samples
+) :
     AnalogueThreshold(name, pin_number, num_samples)
 {
     // Set minimum and maximum scale values and calculate range
     min_val_ = min_val;
     max_val_ = max_val;
     range_ = max_val_ - min_val;
+
+    // Set the hysteresis value
+    hysteresis_ = hysteresis;
 }
 
 //! AnalogueThreshold constructor
@@ -44,10 +49,12 @@ AnalogueThreshold::AnalogueThreshold(const char* name, pin_size_t pin_number, ui
     num_samples_(num_samples),
     write_ptr_(0),
     saved_(0),
+    state_ok_(true),
     min_val_(0.0),
     max_val_(0.0),
-    range_(0.0)
-{
+    range_(0.0),
+    hysteresis_(0.0)
+ {
     // Allocate an array for rolling average samples
     samples_ = new int[num_samples_];
 
@@ -83,8 +90,10 @@ String AnalogueThreshold::name(void) const
 void AnalogueThreshold::update(void)
 {
 
-    // Read the analogue pin and add to the sample array at the current write pointer
-    samples_[write_ptr_] = analogRead(pin_number_);
+    // Read the analogue pin and add to the sample array at the current write pointer.
+    // The ADC value is inverted for convenience so the variable pots increase the threshold
+    // when turned clockwise
+    samples_[write_ptr_] = MAX_ADC_VAL - analogRead(pin_number_);
 
     // Update the write pointer modulo the number of samples
     write_ptr_ = (write_ptr_ + 1) % num_samples_;
@@ -123,6 +132,8 @@ float AnalogueThreshold::value(void)
 //!
 //! This method returns the rolling average mean value of samples for the threshold.
 //!
+//! \return current rolling average mean value of ADC samples as floating point.
+//!
 float AnalogueThreshold::sample_mean(void)
 {
     // Sum the currently stored samples
@@ -136,4 +147,34 @@ float AnalogueThreshold::sample_mean(void)
     float mean = sum / saved_;
 
     return mean;
+}
+
+//! Compare a given reading with the threshold
+//!
+//! This method compares a given reading, e.g. sensor temperature, with the current value of the
+//! threshold, returning true if the reading is below threshold, false otherwise. The state
+//! determined in that comparison is stored in the object to allow the hysteresis to be implemented.
+//! If the previous state was false, then the comparison is made with the hysteresis subtracted
+//  from the threshold value. This avoids the treshold state toggling rapdily back and forth when
+//! the reading is close to the current value.
+//!
+//! \param[in] reading - current reading to compare with threshold
+//!
+//! \return boolean indicating state of comparison (true: below threshold, false: above threshold)
+//!
+bool AnalogueThreshold::compare(float reading)
+{
+
+    // If previous comparison state was OK, compare reading with threshold, otherwise subtract
+    // the hysteresis value. Store the current comparison state for future use.
+    if (state_ok_)
+    {
+        state_ok_ = (reading < value());
+    }
+    else
+    {
+        state_ok_ = (reading < (value() - hysteresis_));
+    }
+
+    return state_ok_;
 }
