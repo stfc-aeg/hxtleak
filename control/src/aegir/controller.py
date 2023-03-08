@@ -55,11 +55,13 @@ class AegirController():
         self.status = PacketReceiveState.UNKNOWN
         self.time_received = datetime.now()
 
-        self.temp = "unknown"
-        self.humidity = "unknown"
-        self.fault = "unknown"
-        self.checksum = "unknown"
-        self.eop = "unknown"
+        # self.temp = "unknown"
+        # self.humidity = "unknown"
+        # self.fault = "unknown"
+        # self.warning = "unknown"
+        # self.checksum = "unknown"
+        # self.eop = "unknown"
+        self.warning_state = False
 
         self.packet_data = None
         self.good_packet_counter = 0
@@ -105,6 +107,7 @@ class AegirController():
                 'daq': self.daq_outlet.tree(),
             },
             'fault' : (lambda: bool(self.fault_state), None),
+            'warning': (lambda: bool(self.warning_state), None),
         })
 
         # Launch the background task
@@ -203,6 +206,7 @@ class AegirController():
                     if self.decoder.verify_checksum(input_buf[-(self.decoder.size):]):
                         self.status = PacketReceiveState.OK
                         self.packet_data = self.decoder.as_dict()
+                        self.warning_state = self.packet_data["warning"]
                         self.good_packet_counter += 1
                     else:
                         logging.warning(
