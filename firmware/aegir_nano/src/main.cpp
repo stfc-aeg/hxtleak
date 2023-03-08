@@ -30,7 +30,11 @@
 #define RNOMINAL 100.0
 
 // Set to 1 to enable debug print
-#define DEBUG_PRINT 1
+#define DEBUG_PRINT 0
+
+// Update period in ms
+int update_period = 500;
+unsigned long time_now = 0;
 
 // Devices and data structure instances
 Adafruit_BME280 bme280;
@@ -60,6 +64,7 @@ const unsigned int num_threshold = sizeof(threshold) / sizeof(threshold[0]);
 AegirData tx_data;
 
 // Forward declarations
+void update_state(void);
 void dump_data(void);
 
 // Setup function - configure the various resources used by the system
@@ -116,12 +121,24 @@ void setup()
 
 }
 
-// Loop function - reads all the appropriate data from the board and transmit over the
-// RS485 serial port
+// Loop function - call the state update method with the specified update period
 void loop()
 {
+    // Evaluate if time since last update exceeds period and do update if so. This check
+    // accommodates the millis() call wrapping periodically
+    if ((unsigned long)(millis() - time_now) > update_period)
+    {
+        time_now = millis();
+        update_state();
+    }
+}
 
-    // Set GPIO output pin high - this is done temporarily to time the loop functionality
+// Update the state of all sensors, evaluate error and warning conditions and transmit
+// data to the controller via the RS485 serial port.
+void update_state()
+{
+
+    // Set GPIO output pin high (used for timing measurements)
     digitalWrite(GPIO_OUTPUT_PIN, HIGH);
 
     // Read the GPIO pins for leak continuity and detection
@@ -185,9 +202,6 @@ void loop()
 
     // Toggle the GPIO pin low to signal end the loop activity
     digitalWrite(GPIO_OUTPUT_PIN, LOW);
-
-    // Delay for 1 second
-    delay(1000);
 
 }
 
