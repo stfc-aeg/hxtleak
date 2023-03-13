@@ -3,36 +3,42 @@ import Table from 'react-bootstrap/Table';
 
 const ParameterTableContext = React.createContext();
 
-export const ParameterEntry = (props) => {
+export const ParameterEntry = ({ param }) => {
 
-    const { name, value, unit = ""} = props;
     const ctx = React.useContext(ParameterTableContext);
 
-    let cell_styles = {};
-    ['name', 'value', 'unit'].forEach(cell_name => {
-      cell_styles[cell_name] = (cell_name in ctx.widths) ? { width : ctx.widths[cell_name]} : {};
+    let col_styles = {};
+
+    ctx.column_keys.forEach( (cell_name) => {
+      col_styles[cell_name] = (cell_name in ctx.widths) ? { width : ctx.widths[cell_name]} : {};
     });
 
     return (
       <tr>
-        <td style={cell_styles.name}>{name}</td>
-        <td style={cell_styles.value}>{value}</td>
-        {ctx.unit && <td style={cell_styles.unit}>{unit}</td>}
+        {
+          ctx.column_keys.map( (col_name) => (
+            <td key={col_name} style={col_styles[col_name]}>{param[col_name]}</td>
+          ))
+        }
       </tr>
     );
 }
 
 export const ParameterTable = (props) => {
 
-    const { header = true, unit = true, widths = {} } = props;
+    const { columns = {}, header = true, widths = {} } = props;
+
+    const column_keys = Object.keys(columns);
 
     const renderHeader = () => {
       return (
         <thead>
           <tr>
-            <th>Parameter</th>
-            <th>Value</th>
-            {unit && <th>Unit</th>}
+            {
+              Object.entries(columns).map( ([col_key, col_name]) => (
+                <th key={col_key}>{col_name}</th>
+              ))
+            }
           </tr>
         </thead>
       )
@@ -42,7 +48,7 @@ export const ParameterTable = (props) => {
         <Table striped hover>
         {header && renderHeader()}
         <tbody>
-          <ParameterTableContext.Provider value={{ unit, widths }}>
+          <ParameterTableContext.Provider value={{ column_keys, widths }}>
             {props.children}
           </ParameterTableContext.Provider>
         </tbody>
