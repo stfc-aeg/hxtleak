@@ -97,8 +97,8 @@ void setup()
     digitalWrite(RS485_DE_PIN, HIGH);
     digitalWrite(RS485_RE_PIN, HIGH);
 
-    // Clear status word
-    tx_data.status = 0;
+    // Clear sensor status word
+    tx_data.sensor_status = 0;
 
     // Initialise the BME280 sensor
     bool status = bme280.begin();
@@ -110,7 +110,7 @@ void setup()
                 "Board sensor invalid BME280 id: 0x" + String(bme280.sensorID(), HEX)
             );
         }
-        tx_data.set_status(STATUS_BOARD_SENSOR_INIT_ERROR);
+        tx_data.set_sensor_status(STATUS_BOARD_SENSOR_INIT_ERROR);
     }
 
     // Initialise the PT100 sensors (MAX31865 devices)
@@ -127,7 +127,7 @@ void setup()
                     "Probe sensor " + String(idx) + " init fault: 0x" + String(fault, HEX)
                 );
             }
-            tx_data.set_status(STATUS_PROBE_SENSOR_INIT_ERROR);
+            tx_data.set_sensor_status(STATUS_PROBE_SENSOR_INIT_ERROR);
         }
     }
 
@@ -171,20 +171,20 @@ void update_state()
     tx_data.board_humidity = bme280.readHumidity();
     if ((tx_data.board_temperature == NAN) || (tx_data.board_humidity == NAN))
     {
-        tx_data.set_status(STATUS_BOARD_SENSOR_READ_ERROR);
+        tx_data.set_sensor_status(STATUS_BOARD_SENSOR_READ_ERROR);
     }
     else
     {
-        tx_data.clear_status(STATUS_BOARD_SENSOR_READ_ERROR);
+        tx_data.clear_sensor_status(STATUS_BOARD_SENSOR_READ_ERROR);
     }
 
-    tx_data.clear_status(STATUS_PROBE_SENSOR_READ_ERROR);
+    tx_data.clear_sensor_status(STATUS_PROBE_SENSOR_READ_ERROR);
     for (int idx = 0; idx < num_pt100; idx++)
     {
         tx_data.probe_temperature[idx] = pt100[idx].temperature(RNOMINAL, RREF);
         uint8_t fault = pt100[idx].readFault();
         if (fault) {
-            tx_data.set_status(STATUS_PROBE_SENSOR_READ_ERROR);
+            tx_data.set_sensor_status(STATUS_PROBE_SENSOR_READ_ERROR);
         }
     }
 

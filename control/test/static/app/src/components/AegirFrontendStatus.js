@@ -43,7 +43,7 @@ const AegirFrontendStatus = ({ state }) => {
       threshold: "-", unit: "-"
     },
     {
-      name: "Status", value: statusString(state.packet_info.status),
+      name: "Sensor status", value: statusString(state.packet_info.sensor_status),
       threshold: "-", unit: "-"
     }
   ] : [] ;

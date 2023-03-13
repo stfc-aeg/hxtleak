@@ -32,7 +32,7 @@ struct AegirData
     bool leak_continuity;                       // Leak continuity flag
     bool fault_condition;                       // Fault condition flag
     bool warning_condition;                     // Warning condition flag
-    uint8_t status;                             // Status bits
+    uint8_t sensor_status;                      // Sensor status bits
     uint8_t checksum;                           // XOR checksum
     const uint16_t eop = 0xA5A5;                // End of packet marker
 
@@ -52,16 +52,16 @@ struct AegirData
         }
     }
 
-    // Set a bit in the status field
-    void set_status(uint8_t bit)
+    // Set a bit in the sensor status field
+    void set_sensor_status(uint8_t bit)
     {
-        status |= 1 << bit;
+        sensor_status |= 1 << bit;
     }
 
-    // Set a bit in the status field
-    void clear_status(uint8_t bit)
+    // Set a bit in the sensor status field
+    void clear_sensor_status(uint8_t bit)
     {
-        status &= ~(1 << bit);
+        sensor_status &= ~(1 << bit);
     }
 
 };// AegirData;

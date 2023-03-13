@@ -34,7 +34,7 @@ class AegirPacketDecoder(struct.Struct):
         self.cont = None
         self.fault = None
         self.warning = None
-        self.status = None
+        self.sensor_status = None
         self.checksum = None
         self.eop = None
 
@@ -59,7 +59,7 @@ class AegirPacketDecoder(struct.Struct):
         (self.board_temp_threshold, self.board_humidity_threshold,
          self.probe_temp_1_threshold, self.probe_temp_2_threshold,
          self.board_temp, self.board_humidity, self.probe_temp_1, self.probe_temp_2,
-         self.leak_detected, self.cont, self.fault, self.warning, self.status,
+         self.leak_detected, self.cont, self.fault, self.warning, self.sensor_status,
          self.checksum, self.eop) = super().unpack(buffer)
 
         self.checksum_valid = None
@@ -101,7 +101,7 @@ class AegirPacketDecoder(struct.Struct):
             "cont": self.cont,
             "fault": self.fault,
             "warning": self.warning,
-            "status": self.status,
+            "sensor_status": self.sensor_status,
             "checksum": self.checksum,
             "eop": hex(self.eop)
         }
@@ -114,9 +114,10 @@ class AegirPacketDecoder(struct.Struct):
         board_temp_threshold={:.2f} board_humidity_threshold={:.2f}
         probe_temp_1_threshold={:.2f} probe_temp_2_threshold={:.2f}
         board_temp={:.2f} board_humidity={:.2f} probe_temp_1={:.2f} probe_temp_2={:.2f}
-        leak_detected={} cont={} fault={} warning={} status={} checksum={} eop={:#x}""".format(
+        leak_detected={} cont={} fault={} warning={} sensor_tatus={}
+        checksum={} eop={:#x}""".format(
             self.board_temp_threshold, self.board_humidity_threshold,
             self.probe_temp_1_threshold, self.probe_temp_2_threshold,
             self.board_temp, self.board_humidity, self.probe_temp_1, self.probe_temp_2,
-            self.leak_detected, self.cont, self.fault, self.warning, self.status,
+            self.leak_detected, self.cont, self.fault, self.warning, self.sensor_status,
             self.checksum, self.eop)
