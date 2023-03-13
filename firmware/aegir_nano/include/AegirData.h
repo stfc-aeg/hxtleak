@@ -15,6 +15,11 @@
 #define AEGIR_SENSOR_THRESHOLDS 4 // Number of sensor thresholds
 #define AEGIR_TEMP_PROBES  2  // Number of external temperature probes
 
+#define STATUS_BOARD_SENSOR_INIT_ERROR 0
+#define STATUS_PROBE_SENSOR_INIT_ERROR 1
+#define STATUS_BOARD_SENSOR_READ_ERROR 2
+#define STATUS_PROBE_SENSOR_READ_ERROR 3
+
 struct AegirData
 {
     float threshold[AEGIR_SENSOR_THRESHOLDS];  // Sensor thresholds
@@ -27,6 +32,7 @@ struct AegirData
     bool leak_continuity;                       // Leak continuity flag
     bool fault_condition;                       // Fault condition flag
     bool warning_condition;                     // Warning condition flag
+    uint8_t status;                             // Status bits
     uint8_t checksum;                           // XOR checksum
     const uint16_t eop = 0xA5A5;                // End of packet marker
 
@@ -44,6 +50,18 @@ struct AegirData
         {
             checksum ^= ptr[idx];
         }
+    }
+
+    // Set a bit in the status field
+    void set_status(uint8_t bit)
+    {
+        status |= 1 << bit;
+    }
+
+    // Set a bit in the status field
+    void clear_status(uint8_t bit)
+    {
+        status &= ~(1 << bit);
     }
 
 };// AegirData;

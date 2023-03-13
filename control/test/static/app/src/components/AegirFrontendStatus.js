@@ -3,6 +3,10 @@ import React from 'react';
 import StatusCard from './StatusCard';
 import {ParameterTable, ParameterEntry} from './ParameterTable';
 
+const statusString = (value) => {
+  return "0x" + value.toString(16).toUpperCase();
+}
+
 const AegirFrontendStatus = ({ state }) => {
 
   const env_status = (state && state.packet_info) ? [
@@ -13,7 +17,8 @@ const AegirFrontendStatus = ({ state }) => {
     {name: "Leak continuity", value: state.packet_info.cont ? "OK" : "Error", unit: "-"},
     {name: "Leak detected", value: state.packet_info.leak_detected ? "Yes" : "No", unit: "-"},
     {name: "Fault", value: state.packet_info.fault ? "Yes" : "No", unit: "-"},
-    {name: "Warning", value: state.packet_info.warning ? "Yes" : "No", unit: "-"}
+    {name: "Warning", value: state.packet_info.warning ? "Yes" : "No", unit: "-"},
+    {name: "Status", value: statusString(state.packet_info.status), unit: "-"}
   ] : [] ;
 
   return (

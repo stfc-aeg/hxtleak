@@ -42,7 +42,6 @@ Adafruit_MAX31865 pt100[] = {
     Adafruit_MAX31865(PT100_T1_CS_PIN),
     Adafruit_MAX31865(PT100_T2_CS_PIN)
 };
-
 const unsigned int num_pt100 = sizeof(pt100) / sizeof(pt100[0]);
 
 enum Threshold
@@ -98,16 +97,20 @@ void setup()
     digitalWrite(RS485_DE_PIN, HIGH);
     digitalWrite(RS485_RE_PIN, HIGH);
 
+    // Clear status word
+    tx_data.status = 0;
+
     // Initialise the BME280 sensor
     bool status = bme280.begin();
     if (!status)
     {
         if (DEBUG_PRINT)
         {
-            Serial.print("Could not find a valid BME280 sensor, sensor ID was");
-            Serial.println(bme280.sensorID(),16);
+            Serial.println(
+                "Board sensor invalid BME280 id: 0x" + String(bme280.sensorID(), HEX)
+            );
         }
-        // TODO set error bit in status word
+        tx_data.set_status(STATUS_BOARD_SENSOR_INIT_ERROR);
     }
 
     // Initialise the PT100 sensors (MAX31865 devices)
@@ -115,6 +118,17 @@ void setup()
     {
         pt100[idx].begin(MAX31865_4WIRE);
         pt100[idx].enable50Hz(true);
+        uint8_t fault = pt100[idx].readFault();
+        if (fault)
+        {
+            if (DEBUG_PRINT)
+            {
+                Serial.println(
+                    "Probe sensor " + String(idx) + " init fault: 0x" + String(fault, HEX)
+                );
+            }
+            tx_data.set_status(STATUS_PROBE_SENSOR_INIT_ERROR);
+        }
     }
 
 }
@@ -152,12 +166,26 @@ void update_state()
         tx_data.threshold[idx] = threshold[idx].value();
     }
 
-    // Update all sensor measurements
+    // Update all sensor measurements and status word if faults encountered
     tx_data.board_temperature = bme280.readTemperature();
     tx_data.board_humidity = bme280.readHumidity();
+    if ((tx_data.board_temperature == NAN) || (tx_data.board_humidity == NAN))
+    {
+        tx_data.set_status(STATUS_BOARD_SENSOR_READ_ERROR);
+    }
+    else
+    {
+        tx_data.clear_status(STATUS_BOARD_SENSOR_READ_ERROR);
+    }
+
+    tx_data.clear_status(STATUS_PROBE_SENSOR_READ_ERROR);
     for (int idx = 0; idx < num_pt100; idx++)
     {
         tx_data.probe_temperature[idx] = pt100[idx].temperature(RNOMINAL, RREF);
+        uint8_t fault = pt100[idx].readFault();
+        if (fault) {
+            tx_data.set_status(STATUS_PROBE_SENSOR_READ_ERROR);
+        }
     }
 
     // Compare the sensor readings with their respective thresholds
@@ -218,7 +246,10 @@ void dump_data(void)
     Serial.print(tx_data.fault_condition);
 
     Serial.print(" Warning: ");
-    Serial.println(tx_data.warning_condition);
+    Serial.print(tx_data.warning_condition);
+
+    Serial.print(" Status: 0x");
+    Serial.println(tx_data.warning_condition, HEX);
 
     Serial.print("Thresholds: ");
     for (int idx = 0; idx < num_threshold; idx++)
