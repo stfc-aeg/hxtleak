@@ -122,6 +122,7 @@ float AnalogueThreshold::value(void)
     if (range_ != 0.0)
     {
         value = min_val_ + (value / MAX_ADC_VAL) * range_;
+        value = float(floor(value * 2) / 2.0);
     }
 
     // Return the value
