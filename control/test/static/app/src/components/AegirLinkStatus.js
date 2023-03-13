@@ -11,11 +11,21 @@ const AegirLinkStatus = ({ state }) => {
     {name: "Last receive", value: state.time_received},
   ] : [] ;
 
+  const columns = {
+    "name": "Name",
+    "value": "Value"
+  }
+
+  const col_widths = {
+    "name": "25%",
+    "value": "75%"
+  }
+
   return (
     <StatusCard title="Link status">
-      <ParameterTable header={false} unit={false} widths={{ value: "75%"}}>
+      <ParameterTable columns={columns} header={false} unit={false} widths={col_widths}>
         {link_status.map((param) => (
-          <ParameterEntry key={param.name} name={param.name} value={param.value} />
+          <ParameterEntry key={param.name} param={param} />
         ))}
       </ParameterTable>
     </StatusCard>
