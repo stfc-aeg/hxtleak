@@ -110,14 +110,14 @@ class AegirPacketDecoder(struct.Struct):
     def __str__(self):
         """Return the values as a formatted string."""
         return """
-        adc_val1={} adc_val2={} adc_val3={} adc_val4={}
         board_temp_threshold={:.2f} board_humidity_threshold={:.2f}
         probe_temp_1_threshold={:.2f} probe_temp_2_threshold={:.2f}
         board_temp={:.2f} board_humidity={:.2f} probe_temp_1={:.2f} probe_temp_2={:.2f}
-        leak_detected={} cont={} fault={} warning={} sensor_tatus={}
+        leak_detected={} cont={} fault={} warning={} sensor_status={}
         checksum={} eop={:#x}""".format(
             self.board_temp_threshold, self.board_humidity_threshold,
             self.probe_temp_1_threshold, self.probe_temp_2_threshold,
             self.board_temp, self.board_humidity, self.probe_temp_1, self.probe_temp_2,
             self.leak_detected, self.cont, self.fault, self.warning, self.sensor_status,
-            self.checksum, self.eop)
+            self.checksum, self.eop
+        )
