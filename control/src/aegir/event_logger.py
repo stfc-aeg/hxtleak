@@ -28,6 +28,8 @@ class LogEvent:
 class AegirEventLogger():
     """Aegir event logger class."""
 
+    TIMESTAMP_FORMAT = "%d/%m/%y %X.%f"
+
     def __init__(self, logger=None, maxlen=250):
         """Intialise the event logger.
 
@@ -45,8 +47,8 @@ class AegirEventLogger():
         # Set up the event queue and internal variables
         self._deque = deque(maxlen=maxlen)
         self._events = []
-        self._last_timestamp = ''
-        self._events_since = ''
+        self._last_timestamp = None
+        self._events_since = None
 
         # Generate logging convenience methods (e.g. debug(), info(), ...) which mirror the
         # standard logger
@@ -86,7 +88,7 @@ class AegirEventLogger():
         """
         return [
             {
-                "timestamp": str(event.timestamp),
+                "timestamp": datetime.strftime(event.timestamp, self.TIMESTAMP_FORMAT),
                 "level": logging.getLevelName(event.level),
                 "message": event.message
             }
@@ -100,7 +102,9 @@ class AegirEventLogger():
 
         :return: timestamp of last event logged as ISO-formatted string
         """
-        return str(self._last_timestamp)
+        return datetime.strftime(
+            self._last_timestamp, self.TIMESTAMP_FORMAT
+        ) if self._last_timestamp else ''
 
     def events_since(self):
         """Return the currently set timestamp for retrieving events since.
@@ -110,7 +114,9 @@ class AegirEventLogger():
 
         :return: current events-since timestamp as ISO-formatted string
         """
-        return str(self._events_since)
+        return datetime.strftime(
+            self._events_since, self.TIMESTAMP_FORMAT
+        ) if self._events_since else ''
 
     def set_events_since(self, events_since_str=None):
         """Set the timestamp for retrieving events since.
@@ -133,7 +139,7 @@ class AegirEventLogger():
         # in the queue.
         if events_since_str:
 
-            self._events_since = datetime.strptime(events_since_str, "%Y-%m-%d %H:%M:%S.%f")
+            self._events_since = datetime.strptime(events_since_str, self.TIMESTAMP_FORMAT)
 
             for index, event in enumerate(event_list):
                 if event.timestamp > self._events_since:
