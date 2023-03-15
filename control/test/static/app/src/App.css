@@ -21,3 +21,9 @@ body {
 .status_card {
   min-height: 100%;
 }
+
+.pre-scrollable {
+  white-space: pre-wrap;
+  height: 340px;
+  min-width: 100%;
+}
