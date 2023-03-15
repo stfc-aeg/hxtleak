@@ -19,6 +19,7 @@ from odin.adapters.parameter_tree import ParameterTree
 from aegir.packet_decoder import AegirPacketDecoder
 from aegir.gpio import Gpio
 from aegir.outlet_relay import OutletRelay
+from aegir.event_logger import AegirEventLogger
 
 
 class PacketReceiveState(Enum):
@@ -51,16 +52,13 @@ class AegirController():
         self.packet_recv_timeout = packet_recv_timeout
         self.receive_task_enable = True
 
+        # Create a logger for system events that can be retrieved by client requests
+        self.logger = AegirEventLogger(logging.getLogger())
+
         # Initialise the values of the parameter tree and packet information
         self.status = PacketReceiveState.UNKNOWN
         self.time_received = datetime.now()
 
-        # self.temp = "unknown"
-        # self.humidity = "unknown"
-        # self.fault = "unknown"
-        # self.warning = "unknown"
-        # self.checksum = "unknown"
-        # self.eop = "unknown"
         self.warning_state = False
 
         self.packet_data = None
@@ -91,7 +89,7 @@ class AegirController():
         try:
             self.serial_input = serial.Serial(port=self.port_name, baudrate=57600, timeout=.5)
         except serial.serialutil.SerialException:
-            logging.error('Failed to open serial port')
+            self.logger.error('Failed to open serial port')
             self.status = "No serial port"
             self.receive_task_enable = False
 
@@ -108,11 +106,16 @@ class AegirController():
             },
             'fault' : (lambda: bool(self.fault_state), None),
             'warning': (lambda: bool(self.warning_state), None),
+            'event_log': {
+                'events': (self.logger.events, None),
+                'last_timestamp': (self.logger.last_timestamp, None),
+                'events_since': (self.logger.events_since, self.logger.set_events_since),
+            },
         })
 
         # Launch the background task
         if self.receive_task_enable:
-            logging.debug("Launching background tasks")
+            self.logger.debug("Launching background tasks")
             self.receive_packets()
 
     def get(self, path):
@@ -164,12 +167,12 @@ class AegirController():
         # If the fault state is set, disable user operation of the outlet relays and turn off.
         # Otherwise, re-enable the relays but leave them off.
         if self.fault_state:
-            logging.info("Fault state detected, disabling and turning off outlets")
+            self.logger.info("Fault state detected, disabling and turning off outlets")
             for outlet in self.outlets:
                 outlet.set_state(False)
                 outlet.set_enabled(False)
         else:
-            logging.info("Fault state cleared, enabling outlets")
+            self.logger.info("Fault state cleared, enabling outlets")
             for outlet in self.outlets:
                 outlet.set_enabled(True)
 
@@ -204,12 +207,14 @@ class AegirController():
 
                     # Verify that the transmitted packet checksum is correct
                     if self.decoder.verify_checksum(input_buf[-(self.decoder.size):]):
+                        if self.status != PacketReceiveState.OK:
+                            self.logger.info("Packet received OK")
                         self.status = PacketReceiveState.OK
                         self.packet_data = self.decoder.as_dict()
                         self.warning_state = self.packet_data["warning"]
                         self.good_packet_counter += 1
                     else:
-                        logging.warning(
+                        self.logger.warning(
                             "Received packet with bad checksum {:02X}".format(self.decoder.checksum)
                         )
                         self.status = PacketReceiveState.INVALID_CHECKSUM
@@ -218,7 +223,7 @@ class AegirController():
                 # Otherwise handle an invalid sized packet
                 else:
                     self.status = PacketReceiveState.INVALID_SIZE
-                    logging.warning("Received incorrectly size packet with length {} : {}".format(
+                    self.logger.warning("Received incorrectly size packet with length {} : {}".format(
                         len(input_buf), ' '.join([hex(val) for val in input_buf])
                     ))
                     self.bad_packet_counter += 1
@@ -232,5 +237,5 @@ class AegirController():
                 recv_delta = (datetime.now() - self.time_received).total_seconds()
                 if recv_delta > self.packet_recv_timeout:
                     if self.status != PacketReceiveState.TIMEOUT:
-                        logging.warning("Packet receive timed out")
+                        self.logger.warning("Packet receive timed out")
                     self.status = PacketReceiveState.TIMEOUT
