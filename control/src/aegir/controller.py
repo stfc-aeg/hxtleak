@@ -95,17 +95,19 @@ class AegirController():
 
         # Store all information in a parameter tree
         self.param_tree = ParameterTree({
-            'status' : (lambda: str(self.status), None),
-            'packet_info' : (lambda: self.packet_data, None),
-            'time_received' : (self._get_time_received, None),
-            'good_packets' : (lambda: self.good_packet_counter, None),
-            'bad_packets' : (lambda: self.bad_packet_counter, None),
-            'outlets' : {
-                'chiller': self.chiller_outlet.tree(),
-                'daq': self.daq_outlet.tree(),
+            'system' : {
+                'status' : (lambda: str(self.status), None),
+                'packet_info' : (lambda: self.packet_data, None),
+                'time_received' : (self._get_time_received, None),
+                'good_packets' : (lambda: self.good_packet_counter, None),
+                'bad_packets' : (lambda: self.bad_packet_counter, None),
+                'outlets' : {
+                    'chiller': self.chiller_outlet.tree(),
+                    'daq': self.daq_outlet.tree(),
+                },
+                'fault' : (lambda: bool(self.fault_state), None),
+                'warning': (lambda: bool(self.warning_state), None),
             },
-            'fault' : (lambda: bool(self.fault_state), None),
-            'warning': (lambda: bool(self.warning_state), None),
             'event_log': {
                 'events': (self.logger.events, None),
                 'last_timestamp': (self.logger.last_timestamp, None),
