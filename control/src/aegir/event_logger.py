@@ -72,9 +72,18 @@ class AegirEventLogger():
         # If logging enabled for the specified level, create and queue a log event and pass to
         # the underlying logger.
         if self.logger.isEnabledFor(level):
-            timestamp = datetime.now()
-            self._deque.append(LogEvent(timestamp, level, msg))
+
+            # Log the message to the underlying logger
             self.logger.log(level, msg, *args, **kwargs)
+
+            # Construct a log event for the current message
+            timestamp = datetime.now()
+            msg = str(msg)
+            if args:
+                msg = msg % args
+            self._deque.append(LogEvent(timestamp, level, msg))
+
+            # Update the last timestamp record in the event logger
             self._last_timestamp = timestamp
 
     def events(self):
