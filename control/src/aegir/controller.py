@@ -24,6 +24,7 @@ from aegir.event_logger import AegirEventLogger
 
 class PacketReceiveState(Enum):
     """Enumeration of controller packet receive state."""
+
     UNKNOWN = "unknown"
     OK = "OK"
     TIMEOUT = "timed out"
@@ -81,15 +82,16 @@ class AegirController():
         self.rs485_di.write(Gpio.LOW)
 
         # Define the chiller and DAQ outlet relay controllers
-        self.chiller_outlet = OutletRelay("P8_14", enabled=not self.fault_state)
-        self.daq_outlet = OutletRelay("P8_16", enabled=not self.fault_state)
+        OutletRelay.set_logger(self.logger)
+        self.chiller_outlet = OutletRelay("Chiller", "P8_14", enabled=not self.fault_state)
+        self.daq_outlet = OutletRelay("DAQ", "P8_16", enabled=not self.fault_state)
         self.outlets = (self.chiller_outlet, self.daq_outlet)
 
         # Initialise the serial port
         try:
             self.serial_input = serial.Serial(port=self.port_name, baudrate=57600, timeout=.5)
         except serial.serialutil.SerialException:
-            self.logger.error('Failed to open serial port')
+            self.logger.error('Failed to open serial port %s', self.port_name)
             self.status = "No serial port"
             self.receive_task_enable = False
 
@@ -117,7 +119,7 @@ class AegirController():
 
         # Launch the background task
         if self.receive_task_enable:
-            self.logger.debug("Launching background tasks")
+            self.logger.debug("Launching packet receive task")
             self.receive_packets()
 
     def get(self, path):
@@ -217,7 +219,7 @@ class AegirController():
                         self.good_packet_counter += 1
                     else:
                         self.logger.warning(
-                            "Received packet with bad checksum {:02X}".format(self.decoder.checksum)
+                            "Received packet with bad checksum 0x%X", self.decoder.checksum
                         )
                         self.status = PacketReceiveState.INVALID_CHECKSUM
                         self.bad_packet_counter += 1
@@ -225,9 +227,10 @@ class AegirController():
                 # Otherwise handle an invalid sized packet
                 else:
                     self.status = PacketReceiveState.INVALID_SIZE
-                    self.logger.warning("Received incorrectly size packet with length {} : {}".format(
+                    self.logger.warning(
+                        "Received incorrectly size packet with length %d : %s",
                         len(input_buf), ' '.join([hex(val) for val in input_buf])
-                    ))
+                    )
                     self.bad_packet_counter += 1
 
                 # Reset the data bytearray
