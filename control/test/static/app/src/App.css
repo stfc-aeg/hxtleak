@@ -27,3 +27,23 @@ body {
   height: 340px;
   min-width: 100%;
 }
+
+.log-debug {
+  color: black;
+}
+
+.log-info {
+  color: green;
+}
+
+.log-warning {
+  color: orange;
+}
+
+.log-error {
+  color: red;
+}
+
+.log-critical {
+  color: red;
+}

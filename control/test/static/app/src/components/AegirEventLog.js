@@ -27,7 +27,9 @@ const AegirEventLog = ({ endpoint }) => {
     .then(result => {
         setLastTimestamp(result.event_log.last_timestamp);
         setEventsSince(result.event_log.events_since);
-        setEvents(old_events => [...old_events, ...result.event_log.events]);
+        if (result.event_log.events.length) {
+            setEvents(old_events => [...old_events, ...result.event_log.events]);
+        }
     })
     .catch(error => {
         console.log(error.message);
@@ -59,16 +61,10 @@ const AegirEventLog = ({ endpoint }) => {
 
   const renderEvent = (event) => {
 
-    const level_styles = {
-        'DEBUG'    : {color: "black"},
-        'INFO'     : {color: "green"},
-        'WARNING'  : {color: "yellow"},
-        'ERROR'    : {color: "red"},
-        'CRITICAL' : {color: "red"},
-    };
+    const event_level_class = "log-" + event.level.toLowerCase();
 
     return (
-        <div key={event.timestamp} style={level_styles[event.level]}>
+        <div key={event.timestamp} className={event_level_class}>
             {event.timestamp} : {event.level} : {event.message}<br/>
         </div>
     )
