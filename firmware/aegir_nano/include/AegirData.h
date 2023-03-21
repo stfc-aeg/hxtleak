@@ -19,6 +19,10 @@
 #define STATUS_PROBE_SENSOR_INIT_ERROR 1
 #define STATUS_BOARD_SENSOR_READ_ERROR 2
 #define STATUS_PROBE_SENSOR_READ_ERROR 3
+#define STATUS_BOARD_TEMPERATURE_WARNING 4
+#define STATUS_BOARD_HUMIDITY_WARNING 5
+#define STATUS_PROBE_0_TEMPERATURE_ERROR 6
+#define STATUS_PROBE_1_TEMPERATURE_ERROR 7
 
 struct AegirData
 {
@@ -49,6 +53,19 @@ struct AegirData
         for (int idx= 0; idx < data_len; idx++)
         {
             checksum ^= ptr[idx];
+        }
+    }
+
+    void set_sensor_status(uint8_t bit, bool value)
+    // Set a bit in the sensor status field to a specific value
+    {
+        if (value)
+        {
+            set_sensor_status(bit);
+        }
+        else
+        {
+            clear_sensor_status(bit);
         }
     }
 

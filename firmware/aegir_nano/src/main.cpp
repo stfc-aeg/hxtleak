@@ -189,20 +189,29 @@ void update_state()
     }
 
     // Compare the sensor readings with their respective thresholds
-    bool board_temp_ok = threshold[Threshold::board_temp].compare(tx_data.board_temperature);
-    bool board_humidity_ok = threshold[Threshold::board_humidity].compare(tx_data.board_humidity);
-    bool probe_temp_0_ok = threshold[Threshold::probe_temp_1].compare(tx_data.probe_temperature[0]);
-    bool probe_temp_1_ok = threshold[Threshold::probe_temp_2].compare(tx_data.probe_temperature[1]);
+    bool board_temp_warning =
+        threshold[Threshold::board_temp].compare(tx_data.board_temperature);
+    bool board_humidity_warning =
+        threshold[Threshold::board_humidity].compare(tx_data.board_humidity);
+    bool probe_temp_0_error =
+        threshold[Threshold::probe_temp_1].compare(tx_data.probe_temperature[0]);
+    bool probe_temp_1_error =
+        threshold[Threshold::probe_temp_2].compare(tx_data.probe_temperature[1]);
+
+    tx_data.set_sensor_status(STATUS_BOARD_TEMPERATURE_WARNING, board_temp_warning);
+    tx_data.set_sensor_status(STATUS_BOARD_HUMIDITY_WARNING, board_humidity_warning);
+    tx_data.set_sensor_status(STATUS_PROBE_0_TEMPERATURE_ERROR, probe_temp_0_error);
+    tx_data.set_sensor_status(STATUS_PROBE_1_TEMPERATURE_ERROR, probe_temp_1_error);
 
     // Evaluate the warning condition based on board temperature and humidity and update warning
     // pin state accordingly
-    tx_data.warning_condition = !(board_temp_ok && board_humidity_ok);
+    tx_data.warning_condition = board_temp_warning || board_humidity_warning;
     digitalWrite(WARNING_CONDITION_PIN, tx_data.warning_condition);
 
     // Evaluate the error condition based on probe temperatures and leak continuity and update
     // error pin state accordingly
-    bool error_condition = !(
-        tx_data.leak_continuity && probe_temp_0_ok && probe_temp_1_ok
+    bool error_condition = (
+        !tx_data.leak_continuity || probe_temp_0_error || probe_temp_1_error
     );
     digitalWrite(ERROR_CONDITION_PIN, error_condition);
 

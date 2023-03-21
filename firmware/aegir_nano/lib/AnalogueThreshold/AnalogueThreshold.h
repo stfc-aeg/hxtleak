@@ -59,7 +59,7 @@ private:
     int* samples_;             // Pointer to array of samples
     uint8_t write_ptr_;        // Current sample array write pointer
     uint8_t saved_;            // Number of saved samples
-    bool state_ok_;            // Saved threshold comparison state
+    bool exceeded_;            // Saved threshold comparison state
 
     float min_val_;            // Minimum threshold value (corresponding to 0 input value)
     float max_val_;            // Maximum threshold value (corresponding to full-scale input value)

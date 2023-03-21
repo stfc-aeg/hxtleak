@@ -49,7 +49,7 @@ AnalogueThreshold::AnalogueThreshold(const char* name, pin_size_t pin_number, ui
     num_samples_(num_samples),
     write_ptr_(0),
     saved_(0),
-    state_ok_(true),
+    exceeded_(false),
     min_val_(0.0),
     max_val_(0.0),
     range_(0.0),
@@ -154,28 +154,28 @@ float AnalogueThreshold::sample_mean(void)
 //!
 //! This method compares a given reading, e.g. sensor temperature, with the current value of the
 //! threshold, returning true if the reading is below threshold, false otherwise. The state
-//! determined in that comparison is stored in the object to allow the hysteresis to be implemented.
-//! If the previous state was false, then the comparison is made with the hysteresis subtracted
-//  from the threshold value. This avoids the treshold state toggling rapdily back and forth when
-//! the reading is close to the current value.
+//! determined in that comparison is stored in the object to allow hysteresis to be implemented. If
+//! the threshold was previously exceeded, then the comparison is made with the hysteresis
+//! subtracted from the threshold value. This avoids the treshold state toggling rapdily back and
+//! forth when the reading is close to the current value.
 //!
 //! \param[in] reading - current reading to compare with threshold
 //!
-//! \return boolean indicating state of comparison (true: below threshold, false: above threshold)
+//! \return boolean indicating state of comparison (true: above threshold, false: below threshold)
 //!
 bool AnalogueThreshold::compare(float reading)
 {
 
     // If previous comparison state was OK, compare reading with threshold, otherwise subtract
     // the hysteresis value. Store the current comparison state for future use.
-    if (state_ok_)
+    if (!exceeded_)
     {
-        state_ok_ = (reading < value());
+        exceeded_ = (reading >= value());
     }
     else
     {
-        state_ok_ = (reading < (value() - hysteresis_));
+        exceeded_ = (reading >= (value() - hysteresis_));
     }
 
-    return state_ok_;
+    return exceeded_;
 }
