@@ -193,15 +193,15 @@ void update_state()
         threshold[Threshold::board_temp].compare(tx_data.board_temperature);
     bool board_humidity_warning =
         threshold[Threshold::board_humidity].compare(tx_data.board_humidity);
-    bool probe_temp_0_error =
+    bool probe_temp_1_fault =
         threshold[Threshold::probe_temp_1].compare(tx_data.probe_temperature[0]);
-    bool probe_temp_1_error =
+    bool probe_temp_2_fault =
         threshold[Threshold::probe_temp_2].compare(tx_data.probe_temperature[1]);
 
     tx_data.set_sensor_status(STATUS_BOARD_TEMPERATURE_WARNING, board_temp_warning);
     tx_data.set_sensor_status(STATUS_BOARD_HUMIDITY_WARNING, board_humidity_warning);
-    tx_data.set_sensor_status(STATUS_PROBE_0_TEMPERATURE_ERROR, probe_temp_0_error);
-    tx_data.set_sensor_status(STATUS_PROBE_1_TEMPERATURE_ERROR, probe_temp_1_error);
+    tx_data.set_sensor_status(STATUS_PROBE_1_TEMPERATURE_FAULT, probe_temp_1_fault);
+    tx_data.set_sensor_status(STATUS_PROBE_2_TEMPERATURE_FAULT, probe_temp_2_fault);
 
     // Evaluate the warning condition based on board temperature and humidity and update warning
     // pin state accordingly
@@ -211,7 +211,7 @@ void update_state()
     // Evaluate the error condition based on probe temperatures and leak continuity and update
     // error pin state accordingly
     bool error_condition = (
-        !tx_data.leak_continuity || probe_temp_0_error || probe_temp_1_error
+        !tx_data.leak_continuity || probe_temp_1_fault || probe_temp_2_fault
     );
     digitalWrite(ERROR_CONDITION_PIN, error_condition);
 

@@ -6,6 +6,19 @@ as well as the formatting of the decoded output.
 James Foster, STFC Detector Systems Software Group
 """
 import struct
+from enum import IntFlag, auto
+from functools import partial
+
+class AegirSensorStatus(IntFlag):
+
+    STATUS_BOARD_SENSOR_INIT_ERROR = auto()
+    STATUS_PROBE_SENSOR_INIT_ERROR = auto()
+    STATUS_BOARD_SENSOR_READ_ERROR = auto()
+    STATUS_PROBE_SENSOR_READ_ERROR = auto()
+    STATUS_BOARD_TEMPERATURE_WARNING = auto()
+    STATUS_BOARD_HUMIDITY_WARNING = auto()
+    STATUS_PROBE_1_TEMPERATURE_FAULT = auto()
+    STATUS_PROBE_2_TEMPERATURE_FAULT = auto()
 
 
 class AegirPacketDecoder(struct.Struct):
@@ -31,7 +44,7 @@ class AegirPacketDecoder(struct.Struct):
         self.probe_temp_1 = None
         self.probe_temp_2 = None
         self.leak_detected = None
-        self.cont = None
+        self.leak_continuity = None
         self.fault = None
         self.warning = None
         self.sensor_status = None
@@ -39,6 +52,13 @@ class AegirPacketDecoder(struct.Struct):
         self.eop = None
 
         self.checksum_valid = None
+
+        def _status_bit_set(bit_value):
+
+            return (self.sensor_status & bit_value) != 0
+
+        for bit in AegirSensorStatus:
+            setattr(self, bit.name.lower(), partial(_status_bit_set, bit.value))
 
     def packet_complete(self, buffer):
         """Verify the packet is complete.
@@ -59,7 +79,7 @@ class AegirPacketDecoder(struct.Struct):
         (self.board_temp_threshold, self.board_humidity_threshold,
          self.probe_temp_1_threshold, self.probe_temp_2_threshold,
          self.board_temp, self.board_humidity, self.probe_temp_1, self.probe_temp_2,
-         self.leak_detected, self.cont, self.fault, self.warning, self.sensor_status,
+         self.leak_detected, self.leak_continuity, self.fault, self.warning, self.sensor_status,
          self.checksum, self.eop) = super().unpack(buffer)
 
         self.checksum_valid = None
@@ -98,7 +118,7 @@ class AegirPacketDecoder(struct.Struct):
             "probe_temp_2": (self.probe_temp_2),
 
             "leak_detected": self.leak_detected,
-            "cont": self.cont,
+            "cont": self.leak_continuity,
             "fault": self.fault,
             "warning": self.warning,
             "sensor_status": self.sensor_status,
@@ -113,11 +133,11 @@ class AegirPacketDecoder(struct.Struct):
         board_temp_threshold={:.2f} board_humidity_threshold={:.2f}
         probe_temp_1_threshold={:.2f} probe_temp_2_threshold={:.2f}
         board_temp={:.2f} board_humidity={:.2f} probe_temp_1={:.2f} probe_temp_2={:.2f}
-        leak_detected={} cont={} fault={} warning={} sensor_status={}
+        leak_detected={} leak_continuity={} fault={} warning={} sensor_status={}
         checksum={} eop={:#x}""".format(
             self.board_temp_threshold, self.board_humidity_threshold,
             self.probe_temp_1_threshold, self.probe_temp_2_threshold,
             self.board_temp, self.board_humidity, self.probe_temp_1, self.probe_temp_2,
-            self.leak_detected, self.cont, self.fault, self.warning, self.sensor_status,
+            self.leak_detected, self.leak_continuity, self.fault, self.warning, self.sensor_status,
             self.checksum, self.eop
         )

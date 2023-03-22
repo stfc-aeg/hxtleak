@@ -11,6 +11,7 @@ import serial
 from concurrent import futures
 from datetime import datetime
 from enum import Enum
+from threading import Lock
 
 from tornado.concurrent import run_on_executor
 
@@ -52,6 +53,14 @@ class AegirController():
         self.port_name = port_name
         self.packet_recv_timeout = packet_recv_timeout
         self.receive_task_enable = True
+
+        # Create a lock for checking and reporting system state across threads and previous
+        # fault/warning conditions
+        self.state_lock = Lock()
+        self.last_fault_state = False
+        self.last_warning_state = False
+        self.last_fault_triggers = None
+        self.last_warning_triggers = None
 
         # Create a logger for system events that can be retrieved by client requests
         self.logger = AegirEventLogger(logging.getLogger())
@@ -168,17 +177,66 @@ class AegirController():
         self.fault_state = bool(self.fault_detect.read())
         logging.debug("Fault transition detected, state is now: %s", self.fault_state)
 
+        # Check and log the state of the system
+        self.report_system_state()
+
         # If the fault state is set, disable user operation of the outlet relays and turn off.
         # Otherwise, re-enable the relays but leave them off.
         if self.fault_state:
-            self.logger.info("Fault state detected, disabling and turning off outlets")
             for outlet in self.outlets:
                 outlet.set_state(False)
                 outlet.set_enabled(False)
         else:
-            self.logger.info("Fault state cleared, enabling outlets")
             for outlet in self.outlets:
                 outlet.set_enabled(True)
+
+    def report_system_state(self):
+
+        with self.state_lock:
+
+            if self.fault_state != self.last_fault_state:
+                if self.fault_state:
+                    self.logger.warning("Fault state detected")
+                else:
+                    self.logger.info("Fault state cleared")
+                self.last_fault_state = self.fault_state
+
+            fault_triggers = {
+                "Leak detected" : self.decoder.leak_detected,
+                "Leak continuity" : not self.decoder.leak_continuity,
+                "Probe 1 temp" : self.decoder.status_probe_1_temperature_fault(),
+                "Probe 2 temp" : self.decoder.status_probe_2_temperature_fault(),
+            }
+
+            if self.last_fault_triggers is None:
+                self.last_fault_triggers = fault_triggers
+
+            if fault_triggers != self.last_fault_triggers:
+                if self.fault_state:
+                    fault_str = [key for (key, val) in fault_triggers.items() if val]
+                    self.logger.warning("Fault conditions: %s", ', '.join(fault_str))
+                self.last_fault_triggers = fault_triggers
+
+            if self.warning_state != self.last_warning_state:
+                if self.warning_state:
+                    self.logger.warning("Warning state detected")
+                else:
+                    self.logger.info("Warning state cleared")
+                self.last_warning_state = self.warning_state
+
+            warning_triggers = {
+                "Board temp" : self.decoder.status_board_temperature_warning(),
+                "Board humidity" : self.decoder.status_board_humidity_warning(),
+            }
+
+            if self.last_warning_triggers is None:
+                self.last_warning_triggers = warning_triggers
+
+            if warning_triggers != self.last_warning_triggers:
+                if self.warning_state:
+                    warning_str = [key for (key, val) in warning_triggers.items() if val]
+                    self.logger.warning("Warning conditions: %s", ', '.join(warning_str))
+                self.last_warning_triggers = warning_triggers
 
     @run_on_executor
     def receive_packets(self):
@@ -244,3 +302,6 @@ class AegirController():
                     if self.status != PacketReceiveState.TIMEOUT:
                         self.logger.warning("Packet receive timed out")
                     self.status = PacketReceiveState.TIMEOUT
+
+            # Check and log the state of the system
+            self.report_system_state()
