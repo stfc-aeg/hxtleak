@@ -126,7 +126,7 @@ class AegirController():
             },
         })
 
-        # Launch the background task
+        # Launch the packet receive task in the background
         if self.receive_task_enable:
             self.logger.debug("Launching packet receive task")
             self.receive_packets()
@@ -191,9 +191,17 @@ class AegirController():
                 outlet.set_enabled(True)
 
     def report_system_state(self):
+        """Report system state to event log.
 
+        This method reports the state of the system to the event log. Transitions in the fault
+        and warning states are reported, along with changes in the conditions forming those states.
+        The last fault and warning states are stored so that changes can be detected.
+        """
+        # Acquire the state lock, since this method may be called by the background packet
+        # receive thread or by the fault detection callback.
         with self.state_lock:
 
+            # If the fault state has changed, report and store the new state
             if self.fault_state != self.last_fault_state:
                 if self.fault_state:
                     self.logger.warning("Fault state detected")
@@ -201,6 +209,7 @@ class AegirController():
                     self.logger.info("Fault state cleared")
                 self.last_fault_state = self.fault_state
 
+            # Evaluate which conditions have triggered the change in the current fault state
             fault_triggers = {
                 "Leak detected" : self.decoder.leak_detected,
                 "Leak continuity" : not self.decoder.leak_continuity,
@@ -208,15 +217,19 @@ class AegirController():
                 "Probe 2 temp" : self.decoder.status_probe_2_temperature_fault(),
             }
 
+            # Save the last fault trigger data if not yet populated
             if self.last_fault_triggers is None:
                 self.last_fault_triggers = fault_triggers
 
+            # If the fault triggers have changed and the fault state is asserted, report which
+            # conditions have triggered the fault
             if fault_triggers != self.last_fault_triggers:
                 if self.fault_state:
                     fault_str = [key for (key, val) in fault_triggers.items() if val]
                     self.logger.warning("Fault conditions: %s", ', '.join(fault_str))
                 self.last_fault_triggers = fault_triggers
 
+            # If the warning state has changed, report and store the new state
             if self.warning_state != self.last_warning_state:
                 if self.warning_state:
                     self.logger.warning("Warning state detected")
@@ -224,14 +237,18 @@ class AegirController():
                     self.logger.info("Warning state cleared")
                 self.last_warning_state = self.warning_state
 
+            # Evaluate which conditions have triggered the change in the current warning state
             warning_triggers = {
                 "Board temp" : self.decoder.status_board_temperature_warning(),
                 "Board humidity" : self.decoder.status_board_humidity_warning(),
             }
 
+            # Save the last warning trigger data if not yet populated
             if self.last_warning_triggers is None:
                 self.last_warning_triggers = warning_triggers
 
+            # If the warning triggers have changed and the warning state is asserted, report which
+            # conditions have triggered the warning
             if warning_triggers != self.last_warning_triggers:
                 if self.warning_state:
                     warning_str = [key for (key, val) in warning_triggers.items() if val]

@@ -9,7 +9,9 @@ import struct
 from enum import IntFlag, auto
 from functools import partial
 
+
 class AegirSensorStatus(IntFlag):
+    """Integer flag enumeration of sensor status bits."""
 
     STATUS_BOARD_SENSOR_INIT_ERROR = auto()
     STATUS_PROBE_SENSOR_INIT_ERROR = auto()
