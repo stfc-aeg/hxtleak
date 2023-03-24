@@ -11,17 +11,21 @@ import AegirControl from './AegirControl';
 import AegirSystemStatus from './AegirSystemStatus';
 import AegirFrontendStatus from './AegirFrontendStatus';
 import AegirLinkStatus from './AegirLinkStatus';
+import AegirEventLog from './AegirEventLog';
 
 const AegirApp = (props) => {
 
   const { endpoint_url } = props;
 
-  const endpoint = useAdapterEndpoint("aegir", endpoint_url, {interval: 500});
+  const system_endpoint = useAdapterEndpoint("aegir/system", endpoint_url, {interval: 500});
+  const event_endpoint = useAdapterEndpoint("aegir/event_log", endpoint_url, {});
+
+  const state = system_endpoint.data ? system_endpoint.data.system : null;
 
   const setError = useErrorOutlet();
   useEffect(() => {
-    setError(endpoint.error);
-  }, [endpoint.error, setError]);
+    setError(system_endpoint.error);
+  }, [system_endpoint.error, setError]);
 
   return (
     <div className="aegir">
@@ -30,18 +34,23 @@ const AegirApp = (props) => {
       <Container fluid>
         <Row>
           <Col>
-            <AegirControl endpoint={endpoint} />
+            <AegirControl endpoint={system_endpoint} />
           </Col>
           <Col>
-            <AegirSystemStatus state={endpoint.data} />
+            <AegirSystemStatus state={state} />
           </Col>
         </Row>
         <Row>
           <Col>
-            <AegirFrontendStatus state={endpoint.data} />
+            <AegirFrontendStatus state={state} />
           </Col>
           <Col>
-            <AegirLinkStatus state={endpoint.data} />
+            <AegirLinkStatus state={state} />
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <AegirEventLog endpoint={event_endpoint} />
           </Col>
         </Row>
       </Container>

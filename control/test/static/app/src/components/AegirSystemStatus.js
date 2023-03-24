@@ -19,14 +19,18 @@ const AegirSystemStatus = (props) => {
   const fault_variant = fault_state ? "danger" : "success";
   const fault_text = "Fault: " + (fault_state ? "yes" : "no");
 
-  const chiller_power_text = "Chiller power: " + (
+  const warning_state = state ? state.warning : true;
+  const warning_variant = warning_state ? "warning" : "success";
+  const warning_text = "Warning: " + (warning_state ? "yes" : "no");
+
+  const chiller_power_text = "Chiller: " + (
     chiller_outlet_disabled ? "disabled" : (
       chiller_outlet_state ? "on" : "off"
     )
   );
   const chiller_power_variant = chiller_outlet_state ? "success" : "warning";
 
-  const daq_power_text = "DAQ power: " + (
+  const daq_power_text = "DAQ: " + (
     daq_outlet_disabled ? "disabled" : (
       daq_outlet_state ? "on" : "off"
     )
@@ -38,6 +42,9 @@ const AegirSystemStatus = (props) => {
       <Row>
         <Col>
           <Alert key="fault" variant={fault_variant}>{fault_text}</Alert >
+        </Col>
+        <Col>
+          <Alert key="warning" variant={warning_variant}>{warning_text}</Alert >
         </Col>
         <Col>
           <Alert key="chiller" variant={chiller_power_variant}>{chiller_power_text}</Alert>

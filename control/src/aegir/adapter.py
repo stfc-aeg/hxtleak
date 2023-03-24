@@ -60,6 +60,7 @@ class AegirAdapter(ApiAdapter):
     @response_types('application/json', default='application/json')
     def put(self, path, request):
         """Handle an HTTP PUT request.
+
         This method handles an HTTP PUT request, decoding the request and attempting to set values
         in the asynchronous parameter tree as appropriate.
         :param path: URI path of request

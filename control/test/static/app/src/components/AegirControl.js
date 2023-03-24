@@ -8,7 +8,7 @@ import StateControlSwitch from './StateControlSwitch';
 
 const AegirControl = ({ endpoint }) => {
 
-  const state = endpoint.data;
+  const state = endpoint.data ? endpoint.data.system : null;
 
   const chiller_outlet_disabled = state ? !state.outlets.chiller.enabled : true;
   const chiller_outlet_state = state ? state.outlets.chiller.state : false;

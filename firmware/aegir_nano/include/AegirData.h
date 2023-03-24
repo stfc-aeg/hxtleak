@@ -12,12 +12,21 @@
 
 #include <Arduino.h>
 
-#define AEGIR_ADC_CHANNELS 4  // Number of ADC channels
+#define AEGIR_SENSOR_THRESHOLDS 4 // Number of sensor thresholds
 #define AEGIR_TEMP_PROBES  2  // Number of external temperature probes
+
+#define STATUS_BOARD_SENSOR_INIT_ERROR 0
+#define STATUS_PROBE_SENSOR_INIT_ERROR 1
+#define STATUS_BOARD_SENSOR_READ_ERROR 2
+#define STATUS_PROBE_SENSOR_READ_ERROR 3
+#define STATUS_BOARD_TEMPERATURE_WARNING 4
+#define STATUS_BOARD_HUMIDITY_WARNING 5
+#define STATUS_PROBE_1_TEMPERATURE_FAULT 6
+#define STATUS_PROBE_2_TEMPERATURE_FAULT 7
 
 struct AegirData
 {
-    uint16_t adc_val[AEGIR_ADC_CHANNELS];       // Raw ADC channel values
+    float threshold[AEGIR_SENSOR_THRESHOLDS];  // Sensor thresholds
 
     float board_temperature;                    // Board temperature (Celsius)
     float board_humidity;                       // Board relative humidity (%)
@@ -26,6 +35,8 @@ struct AegirData
     bool leak_detected;                         // Leak detection flag
     bool leak_continuity;                       // Leak continuity flag
     bool fault_condition;                       // Fault condition flag
+    bool warning_condition;                     // Warning condition flag
+    uint8_t sensor_status;                      // Sensor status bits
     uint8_t checksum;                           // XOR checksum
     const uint16_t eop = 0xA5A5;                // End of packet marker
 
@@ -43,6 +54,31 @@ struct AegirData
         {
             checksum ^= ptr[idx];
         }
+    }
+
+    void set_sensor_status(uint8_t bit, bool value)
+    // Set a bit in the sensor status field to a specific value
+    {
+        if (value)
+        {
+            set_sensor_status(bit);
+        }
+        else
+        {
+            clear_sensor_status(bit);
+        }
+    }
+
+    // Set a bit in the sensor status field
+    void set_sensor_status(uint8_t bit)
+    {
+        sensor_status |= 1 << bit;
+    }
+
+    // Set a bit in the sensor status field
+    void clear_sensor_status(uint8_t bit)
+    {
+        sensor_status &= ~(1 << bit);
     }
 
 };// AegirData;
