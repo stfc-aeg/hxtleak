@@ -64,6 +64,7 @@ class AegirController():
 
         # Create a logger for system events that can be retrieved by client requests
         self.logger = AegirEventLogger(logging.getLogger())
+        self.logger.info("System starting up")
 
         # Initialise the values of the parameter tree and packet information
         self.status = PacketReceiveState.UNKNOWN
@@ -128,7 +129,7 @@ class AegirController():
 
         # Launch the packet receive task in the background
         if self.receive_task_enable:
-            self.logger.debug("Launching packet receive task")
+            self.logger.info("Launching packet receive task")
             self.receive_packets()
 
     def get(self, path):

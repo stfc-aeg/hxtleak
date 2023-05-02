@@ -49,7 +49,7 @@ class OutletRelay():
         self.enabled = enabled
         self.state = state
 
-        self.logger.debug("%s outlet initialised", self.name)
+        self.logger.info("%s outlet initialised", self.name)
 
     def set_enabled(self, enable):
         """
