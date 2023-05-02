@@ -1,6 +1,8 @@
 ---
 ansible_python_interpreter: /usr/bin/python3
 timezone: Europe/London
+hxt_group: hexitec
+hxt_user: hexiuser
 hxt_sw_dir: /hxt_sw
 hxt_install_dir: "{{ hxt_sw_dir }}/install"
 hxtleak_repo_url: https://github.com/stfc-aeg/aegir.git

@@ -64,16 +64,16 @@
 
     - name: Create hexitec group
       ansible.builtin.group:
-        name: hexitec
+        name: "{{ hxt_group }}"
         gid: 1001
         state: present
       tags: user
 
     - name: Create hexiuser account
       ansible.builtin.user:
-        name: hexiuser
+        name: "{{ hxt_user }}"
         uid: 1001
-        group: hexitec
+        group: "{{ hxt_group }}"
         password: $6$9Cc9hWUtHGRnOv1b$hNAHEA./g6aVbIbvyJKKaaDGN.oDOsnBO/OBM5o5AGjr/8KQE1uhpTcQapC1u.fuRJqORUrg3b/tB9gkuA00h.
         update_password: on_create
         shell: /bin/bash
@@ -81,7 +81,7 @@
 
     - name: Add hexiuser account to required system groups
       ansible.builtin.user:
-        name: hexiuser
+        name: "{{ hxt_user }}"
         append: yes
         groups:
           - adm
@@ -130,7 +130,8 @@
     - name: Create hexitex software directory
       ansible.builtin.file:
         path: "{{ hxt_sw_dir }}"
-        group: hexitec
+        owner: "{{ hxt_user }}"
+        group: "{{ hxt_group }}"
         mode: u=rwx,g=rwx,o=rx
         state: directory
       tags: app
@@ -138,18 +139,10 @@
     - name: Create install directory for application
       ansible.builtin.file:
         path: "{{ hxt_install_dir }}"
-        group: hexitec
+        owner: "{{ hxt_user }}"
+        group: "{{ hxt_group }}"
         mode: u=rwx,g=rwx,o=rx
         state: directory
-      tags: app
-
-    - name: Clone hxtleak repo from Github
-      ansible.builtin.git:
-        repo: "{{ hxtleak_repo_url }}"
-        dest: "{{ hxt_install_dir }}/aegir"
-        accept_hostkey: yes
-      become: yes
-      become_user: hexiuser
       tags: app
 
     - name: Install hxtleak package into virtualenv
@@ -158,13 +151,24 @@
         virtualenv: "{{ hxt_install_dir}}"
         editable: yes
       become: yes
-      become_user: hexiuser
+      become_user: "{{ hxt_user }}"
+      tags: app
+
+    - name: Create config directory for odin-control
+      ansible.builtin.file:
+        path: "{{ hxt_install_dir }}/config"
+        owner: "{{ hxt_user }}"
+        group: "{{ hxt_group }}"
+        mode: u=rwx,g=rwx,o=rx
+        state: directory
       tags: app
 
     - name: Install configuration file for hxtleak odin-control server
       ansible.builtin.template:
         src: templates/hxtleak.cfg.j2
         dest: "{{ hxt_install_dir }}/config/hxtleak.cfg"
+        owner: "{{ hxt_user }}"
+        group: "{{ hxt_group }}"
       notify: Restart odin-hxtleak service
       tags: [app,service]
 
