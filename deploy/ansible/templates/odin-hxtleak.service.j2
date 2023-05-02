@@ -1,0 +1,12 @@
+[Unit]
+Description=HEXITEC leak detector odin-control server
+After=multi-user.target
+
+[Service]
+Type=simple
+User=root
+Group=hexitec
+ExecStart={{ hxt_install_dir }}/bin/odin_control --config {{ hxt_install_dir }}/config/hxtleak.cfg
+
+[Install]
+WantedBy=default.target
