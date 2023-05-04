@@ -147,7 +147,7 @@
 
     - name: Install hxtleak package into virtualenv
       ansible.builtin.pip:
-        name: "git+{{ hxtleak_repo_url }}#egg=aegir&subdirectory=control"
+        name: "git+{{ hxtleak_repo_url }}#egg=hxtleak&subdirectory=control"
         virtualenv: "{{ hxt_install_dir}}"
         editable: yes
       become: yes
