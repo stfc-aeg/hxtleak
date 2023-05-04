@@ -7,7 +7,7 @@ const statusString = (value) => {
   return "0x" + value.toString(16).toUpperCase();
 }
 
-const AegirFrontendStatus = ({ state }) => {
+const HxtleakFrontendStatus = ({ state }) => {
 
   const fe_status = (state && state.packet_info) ? [
     {
@@ -73,4 +73,4 @@ const AegirFrontendStatus = ({ state }) => {
   );
 }
 
-export default AegirFrontendStatus;
+export default HxtleakFrontendStatus;

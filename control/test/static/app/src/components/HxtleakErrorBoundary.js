@@ -1,7 +1,7 @@
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 
-class AegirErrorBoundary extends React.Component {
+class HxtleakErrorBoundary extends React.Component {
 
   constructor(props) {
     super(props);
@@ -42,4 +42,4 @@ class AegirErrorBoundary extends React.Component {
   }
 }
 
-export default AegirErrorBoundary;
+export default HxtleakErrorBoundary;

@@ -3,7 +3,7 @@
 James Foster
 """
 import pytest
-from aegir.controller import AegirController
+from hxtleak.controller import HxtleakController
 import struct
 import os
 import time
@@ -29,7 +29,7 @@ class DummySerialPortFixture(object):
         self.packet_small = struct.pack('<HH?H', 5, 2, 0, 42405)
         self.bad_checksum = struct.pack('<HH?BH', 1, 2, 0, 0, 42405)
 
-        self.controller = AegirController(self.port_name)
+        self.controller = HxtleakController(self.port_name)
 
     def ser_write(self, input):
         """Write a packet to the dummy serial port.
@@ -47,7 +47,7 @@ def serial_fixture():
     serial_fixture.controller.cleanup()
 
 
-class TestAegirController():
+class TestHxtleakController():
     """Class to test the controller behaviour."""
 
     def test_serial_read(self, serial_fixture):
@@ -71,7 +71,7 @@ class TestAegirController():
 
     def test_no_serial_port(self):
         """Test that creating a controller with a non-existent port sets the status message."""
-        controller = AegirController('/dev/doesntexist')
+        controller = HxtleakController('/dev/doesntexist')
         assert controller.status == "No serial port"
 
     def test_param_tree_get(self, serial_fixture):

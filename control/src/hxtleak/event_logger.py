@@ -1,6 +1,6 @@
-"""Event logger for the Aegir adapter.
+"""Event logger for the Hxtleak adapter.
 
-This module implements a simple event logger for the Aegir adapter. It implements the standard
+This module implements a simple event logger for the Hxtleak adapter. It implements the standard
 logging module method (e.g. debug(), info(), warning()), with log messages being emitted to the
 specified logger but also captured in a local queue of fixed depth, which can then be exposed
 by an adapter parameter tree for clients to retrieve. Events after a specified timestamp can be
@@ -25,8 +25,8 @@ class LogEvent:
     message: str
 
 
-class AegirEventLogger():
-    """Aegir event logger class."""
+class HxtleakEventLogger():
+    """Hxtleak event logger class."""
 
     TIMESTAMP_FORMAT = "%d/%m/%y %X.%f"
 

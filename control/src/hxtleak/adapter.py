@@ -1,7 +1,7 @@
-"""Main adapter portion of the Aegir Adapter.
+"""odin-control adapter for the HEXITEC leak detector system.
 
 This class initialises the adapter which sets the port name and creates
-the controller object, and handles HTTP GET requests to the adapter.
+the controller object, and handles HTTP requests to the adapter.
 
 James Foster, STFC Detector Systems Software Group
 """
@@ -11,12 +11,12 @@ from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types,
 from odin.adapters.parameter_tree import ParameterTreeError
 from odin.util import decode_request_body
 
-from aegir.controller import AegirController
-from aegir.util import AegirError
+from hxtleak.controller import HxtleakController
+from hxtleak.util import HxtleakError
 
 
-class AegirAdapter(ApiAdapter):
-    """Main adapter class for the Aegir Adapter."""
+class HxtleakAdapter(ApiAdapter):
+    """Main adapter class for the Hxtleak adapter."""
 
     def __init__(self, **kwargs):
         """Initialise the adapter object.
@@ -30,9 +30,9 @@ class AegirAdapter(ApiAdapter):
         # Parse options
         port_name = str(self.options.get('port_name', '/dev/ttyACM0'))
 
-        self.controller = AegirController(port_name)
+        self.controller = HxtleakController(port_name)
 
-        logging.debug("AegirAdapter loaded")
+        logging.debug("HxtleakAdapter loaded")
 
     @response_types('application/json', default='application/json')
     def get(self, path, request):
@@ -47,7 +47,7 @@ class AegirAdapter(ApiAdapter):
         try:
             response = self.controller.get(path)
             status_code = 200
-        except (ParameterTreeError, AegirError) as e:
+        except (ParameterTreeError, HxtleakError) as e:
             response = {'error': str(e)}
             status_code = 400
 
@@ -73,7 +73,7 @@ class AegirAdapter(ApiAdapter):
             data = decode_request_body(request)
             response = self.controller.set(path, data)
             status_code = 200
-        except (ParameterTreeError, AegirError) as e:
+        except (ParameterTreeError, HxtleakError) as e:
             response = {'error': str(e)}
             status_code = 400
 

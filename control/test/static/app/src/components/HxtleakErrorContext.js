@@ -3,7 +3,7 @@ import Alert from 'react-bootstrap/Alert';
 
 const ErrorContext = React.createContext();
 
-export const AegirErrorContext = (props) => {
+export const HxtleakErrorContext = (props) => {
 
   const [error, setError] = useState(null);
   const ctx = useMemo(() => ({ error, setError }), [error]);
@@ -14,7 +14,7 @@ export const AegirErrorContext = (props) => {
 
 }
 
-export const AegirErrorInlet = ({ error }) => {
+export const HxtleakErrorInlet = ({ error }) => {
 
     const ref = useRef();
     const errorContext = useContext(ErrorContext);
@@ -29,7 +29,7 @@ export const AegirErrorInlet = ({ error }) => {
     });
     return null;
   }
-export const AegirErrorOutlet = () => {
+export const HxtleakErrorOutlet = () => {
 
   const { error, setError } = useContext(ErrorContext);
 

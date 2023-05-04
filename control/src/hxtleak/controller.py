@@ -1,4 +1,4 @@
-"""Controller portion of the Aegir Adapter.
+"""Controller for the Hxtleak adapter.
 
 The controller handles the main background task which receives raw data packets
 through a serial port and handles them, and the parameter tree which displays
@@ -17,10 +17,10 @@ from tornado.concurrent import run_on_executor
 
 from odin.adapters.parameter_tree import ParameterTree
 
-from aegir.packet_decoder import AegirPacketDecoder
-from aegir.gpio import Gpio
-from aegir.outlet_relay import OutletRelay
-from aegir.event_logger import AegirEventLogger
+from hxtleak.packet_decoder import HxtleakPacketDecoder
+from hxtleak.gpio import Gpio
+from hxtleak.outlet_relay import OutletRelay
+from hxtleak.event_logger import HxtleakEventLogger
 
 
 class PacketReceiveState(Enum):
@@ -38,7 +38,7 @@ class PacketReceiveState(Enum):
         return str(self.value)
 
 
-class AegirController():
+class HxtleakController():
     """Main class for the controller object."""
 
     # Thread executor used for background tasks
@@ -63,7 +63,7 @@ class AegirController():
         self.last_warning_triggers = None
 
         # Create a logger for system events that can be retrieved by client requests
-        self.logger = AegirEventLogger(logging.getLogger())
+        self.logger = HxtleakEventLogger(logging.getLogger())
         self.logger.info("System starting up")
 
         # Initialise the values of the parameter tree and packet information
@@ -77,7 +77,7 @@ class AegirController():
         self.bad_packet_counter = 0
 
         # Initialise the packet decoder class
-        self.decoder = AegirPacketDecoder()
+        self.decoder = HxtleakPacketDecoder()
 
         # Define the fault detect GPIO pin, add an event callback and initialise the fault state
         # value

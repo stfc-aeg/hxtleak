@@ -1,7 +1,7 @@
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 
-function AegirNavbar() {
+function HxtleakNavbar() {
   return (
     <Navbar bg="dark" variant="dark" expand="lg" fixed="top">
       <Navbar.Brand href="#home">
@@ -25,4 +25,4 @@ function AegirNavbar() {
   );
 }
 
-export default AegirNavbar;
+export default HxtleakNavbar;

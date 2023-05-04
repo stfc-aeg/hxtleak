@@ -6,7 +6,7 @@ import Col from 'react-bootstrap/Col';
 import StatusCard from './StatusCard';
 import StateControlSwitch from './StateControlSwitch';
 
-const AegirControl = ({ endpoint }) => {
+const HxtleakControl = ({ endpoint }) => {
 
   const state = endpoint.data ? endpoint.data.system : null;
 
@@ -41,4 +41,4 @@ const AegirControl = ({ endpoint }) => {
   )
 }
 
-export default AegirControl;
+export default HxtleakControl;

@@ -1,4 +1,4 @@
-let aegir_endpoint;
+let hxtleak_endpoint;
 
 /**
  * This function is called when the DOM content of the page is loaded, and initialises
@@ -9,7 +9,7 @@ let aegir_endpoint;
 document.addEventListener("DOMContentLoaded", function () {
 
     // Initialise the adapter endpoint
-    aegir_endpoint = new AdapterEndpoint("aegir");
+    hxtleak_endpoint = new AdapterEndpoint("hxtleak");
     init();
     poll_update();
     poll_chart_update();
@@ -215,7 +215,7 @@ var hum_ambient = NaN;
 function update_chart_temps() 
 {
     // Updates the information on the charts.
-    aegir_endpoint.get('')
+    hxtleak_endpoint.get('')
     .then(result => {
         temp_ambient = result.packet_info.temp.toFixed(2);
         hum_ambient = result.packet_info.humidity.toFixed(2);
@@ -247,7 +247,7 @@ var task_packet_fault = NaN
 function update_background_task()
 {
     // Updates the information for the text boxes.
-    aegir_endpoint.get('')
+    hxtleak_endpoint.get('')
     .then(result => {
         var task_status = result.status;
 

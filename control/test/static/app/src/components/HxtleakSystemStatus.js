@@ -6,7 +6,7 @@ import Alert from 'react-bootstrap/Alert';
 
 import StatusCard from './StatusCard';
 
-const AegirSystemStatus = (props) => {
+const HxtleakSystemStatus = (props) => {
 
   const {state} = props;
 
@@ -57,4 +57,4 @@ const AegirSystemStatus = (props) => {
   )
 }
 
-export default AegirSystemStatus;
+export default HxtleakSystemStatus;
