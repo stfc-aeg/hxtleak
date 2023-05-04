@@ -1,2 +1,3 @@
-# aegir
-Detector system environmental protection &amp; monitoring system
+# hxtleak
+HEXTIEC leak detector, environmental protection &amp; monitoring system
+
