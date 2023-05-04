@@ -1,7 +1,7 @@
 /*
- * main.cpp - AEGIR leak detectormicrocontroller implementation
+ * main.cpp - HEXITEC leak detector microcontroller implementation
  *
- * This file implements the main functionality of the AEGDIR leak detector microcontroller. This
+ * This file implements the main functionality of the HEXITEC leak detector microcontroller. This
  * this based on the Arduino framework and targets an Arduino Nano Every device.
  *
  * James Foster, Tim Nicholls, STFC Detector Systems Software Group
@@ -12,7 +12,7 @@
 
 #include "AnalogueThreshold.h"
 
-#include "AegirData.h"
+#include "HxtleakData.h"
 
 // Pin definitions
 #define LEAK_CONTINUITY_PIN 2
@@ -60,7 +60,7 @@ AnalogueThreshold threshold[] = {
 };
 const unsigned int num_threshold = sizeof(threshold) / sizeof(threshold[0]);
 
-AegirData tx_data;
+HxtleakData tx_data;
 
 // Forward declarations
 void update_state(void);
@@ -74,7 +74,7 @@ void setup()
     Serial.begin(57600);
     if (DEBUG_PRINT)
     {
-        Serial.println("AEGIR startup");
+        Serial.println("HXTLEAK startup");
     }
 
     // Set up the second serial port for RS485 data transmission
