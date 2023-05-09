@@ -2,8 +2,8 @@ name: publish_app
 run-name: Building and publishing static app
 on:
   push:
-    tags:
-      - '*'
+#    tags:
+#      - '*'
 
 jobs:
   build:
