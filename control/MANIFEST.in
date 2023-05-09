@@ -1,2 +1,2 @@
 include versioneer.py
-include src/aegir/_version.py
+include src/hxtleak/_version.py

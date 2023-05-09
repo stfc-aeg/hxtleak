@@ -2,7 +2,7 @@ import React from 'react';
 import StatusCard from './StatusCard';
 import { ParameterTable, ParameterEntry } from './ParameterTable';
 
-const AegirLinkStatus = ({ state }) => {
+const HxtleakLinkStatus = ({ state }) => {
 
   const link_status = state ? [
     {name: "Receive status", value: state.status},
@@ -32,4 +32,4 @@ const AegirLinkStatus = ({ state }) => {
   );
 }
 
-export default AegirLinkStatus;
+export default HxtleakLinkStatus;

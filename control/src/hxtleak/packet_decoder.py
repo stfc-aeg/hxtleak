@@ -1,4 +1,4 @@
-"""Packet Decoder portion of the Aegir Adapter.
+"""Packet Decoder portion of the Hxtleak adapter.
 
 This handles the unpacking and validation of received packets,
 as well as the formatting of the decoded output.
@@ -10,7 +10,7 @@ from enum import IntFlag, auto
 from functools import partial
 
 
-class AegirSensorStatus(IntFlag):
+class HxtleakSensorStatus(IntFlag):
     """Integer flag enumeration of sensor status bits."""
 
     STATUS_BOARD_SENSOR_INIT_ERROR = auto()
@@ -23,7 +23,7 @@ class AegirSensorStatus(IntFlag):
     STATUS_PROBE_2_TEMPERATURE_FAULT = auto()
 
 
-class AegirPacketDecoder(struct.Struct):
+class HxtleakPacketDecoder(struct.Struct):
     """Decoder class for received data packets."""
 
     EOP_VAL = 0xa5
@@ -59,7 +59,7 @@ class AegirPacketDecoder(struct.Struct):
 
             return (self.sensor_status & bit_value) != 0
 
-        for bit in AegirSensorStatus:
+        for bit in HxtleakSensorStatus:
             setattr(self, bit.name.lower(), partial(_status_bit_set, bit.value))
 
     def packet_complete(self, buffer):

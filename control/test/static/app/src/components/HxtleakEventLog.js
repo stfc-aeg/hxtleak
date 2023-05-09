@@ -5,7 +5,7 @@ import Col from 'react-bootstrap/Col';
 
 import StatusCard from './StatusCard';
 
-const AegirEventLog = ({ endpoint }) => {
+const HxtleakEventLog = ({ endpoint }) => {
 
   const interval = 1000;
 
@@ -81,4 +81,4 @@ const AegirEventLog = ({ endpoint }) => {
   )
 }
 
-export default AegirEventLog;
+export default HxtleakEventLog;

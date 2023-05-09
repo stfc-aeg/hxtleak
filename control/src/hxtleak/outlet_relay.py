@@ -1,6 +1,6 @@
 """Outlet relay control.
 
-This module implements GPIO-based control of the AEGIR power outlet relays. The state of the relay
+This module implements GPIO-based control of the Hxtleak power outlet relays. The state of the relay
 can be controlled, and the outlet control enabled/disabled as appropriate during fault conditions.
 
 Tim Nicholls, STFC Detector Systems Software Group
@@ -8,14 +8,14 @@ Tim Nicholls, STFC Detector Systems Software Group
 import logging
 
 from .gpio import Gpio
-from .util import AegirError
+from .util import HxtleakError
 
 
 class OutletRelay():
     """
     Outlet relay control class.
 
-    The class implmenents control of the AEGIR power outlet relays via GPIO pins.
+    The class implmenents control of the Hxtleak power outlet relays via GPIO pins.
     """
 
     logger = logging.getLogger()  # Logger for OutletRelay instances - defaults to root logger
@@ -67,12 +67,12 @@ class OutletRelay():
         Set the state of the outlet relay.
 
         This method sets the state of the outlet relay. If the outlet is not enabled, attempting to
-        set the state will raise an AegirError exception.
+        set the state will raise an HxtleakError exception.
 
         :param state: outlet state (True or False)
         """
         if not self.enabled:
-            raise AegirError("Cannot change the state of a disabled outlet relay")
+            raise HxtleakError("Cannot change the state of a disabled outlet relay")
 
         self.state = bool(state)
         self.gpio.write(self.state)

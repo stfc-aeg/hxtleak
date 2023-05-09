@@ -3,7 +3,7 @@
 James Foster
 """
 import pytest
-from aegir.packet_decoder import AegirPacketDecoder
+from hxtleak.packet_decoder import HxtleakPacketDecoder
 import struct
 
 
@@ -17,7 +17,7 @@ class DecoderTestFixture(object):
         self.bad_eop = struct.pack('<HH?BH', 1, 2, 0, 3, 0)
         self.bad_large_packet = struct.pack('<HH?BHH', 1, 2, 0, 3, 4, 42405)
 
-        self.decoder = AegirPacketDecoder()
+        self.decoder = HxtleakPacketDecoder()
 
 
 @pytest.fixture(scope="class")
