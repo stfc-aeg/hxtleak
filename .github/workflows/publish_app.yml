@@ -23,7 +23,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm run build
+      - name: Show cwd
+        run: pwd
+      - name: List files
+        run: ls -R
+      - name: Build app
+        run: npm run build
       - name: Save build artifact
         uses: actions/upload-artifact@v3
         with:
