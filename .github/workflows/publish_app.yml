@@ -27,6 +27,8 @@ jobs:
         run: pwd
       - name: List files
         run: ls -R
+      - name: Clean install app
+        run: npm ci
       - name: Build app
         run: npm run build
       - name: Save build artifact
