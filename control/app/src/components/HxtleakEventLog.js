@@ -1,8 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-
 import StatusCard from './StatusCard';
 
 const HxtleakEventLog = ({ endpoint }) => {
@@ -35,7 +32,7 @@ const HxtleakEventLog = ({ endpoint }) => {
         console.log(error.message);
     })
 
-  }, [events_since, last_timestamp, events]);
+  }, [events_since, last_timestamp, events]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let timer_id = null;
