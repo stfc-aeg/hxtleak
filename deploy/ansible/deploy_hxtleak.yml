@@ -147,11 +147,20 @@
 
     - name: Install hxtleak package into virtualenv
       ansible.builtin.pip:
-        name: "git+{{ hxtleak_repo_url }}#egg=hxtleak&subdirectory=control"
+        name: "git+{{ hxtleak_repo_url }}.git@{{ hxtleak_release }}#egg=hxtleak&subdirectory=control"
         virtualenv: "{{ hxt_install_dir}}"
         editable: yes
       become: yes
       become_user: "{{ hxt_user }}"
+      tags: app
+
+    - name: Install hxtleak app from Github release
+      ansible.builtin.unarchive:
+        src: "{{ hxtleak_repo_url }}/releases/download/{{ hxtleak_release }}/app_build.tgz"
+        dest: "{{ hxt_install_dir}}"
+        remote_src: yes
+        owner: "{{ hxt_user }}"
+        group: "{{ hxt_group }}"
       tags: app
 
     - name: Create config directory for odin-control
