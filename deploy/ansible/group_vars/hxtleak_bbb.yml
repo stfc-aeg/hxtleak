@@ -6,4 +6,4 @@ hxt_user: hexiuser
 hxt_sw_dir: /hxt_sw
 hxt_install_dir: "{{ hxt_sw_dir }}/install"
 hxtleak_repo_url: https://github.com/stfc-aeg/hxtleak
-hxtleak_release: "0.1.1"
+hxtleak_release: "1.0.0"
