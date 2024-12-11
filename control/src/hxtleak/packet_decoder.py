@@ -57,7 +57,7 @@ class HxtleakPacketDecoder(struct.Struct):
 
         def _status_bit_set(bit_value):
 
-            return (self.sensor_status & bit_value) != 0
+            return self.sensor_status and ((self.sensor_status & bit_value) != 0)
 
         for bit in HxtleakSensorStatus:
             setattr(self, bit.name.lower(), partial(_status_bit_set, bit.value))
